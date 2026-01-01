@@ -18,7 +18,6 @@ class BottomNavGenerator extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = _itemsFor(tabSet);
     return BottomNavigationBar(
-      selectedItemColor: Colors.green,
       currentIndex: currentIndex,
       onTap: onTap,
       items: items,
