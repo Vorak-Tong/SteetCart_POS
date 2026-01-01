@@ -36,8 +36,8 @@ class BottomNavGenerator extends StatelessWidget {
       case FeatureTabSet.menu:
         return const [
           BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Categories'),
-          BottomNavigationBarItem(icon: Icon(Icons.local_drink), label: 'Items'),
+          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Category'),
+          BottomNavigationBarItem(icon: Icon(Icons.local_drink), label: 'Modifier'),
         ];
     }
   }
