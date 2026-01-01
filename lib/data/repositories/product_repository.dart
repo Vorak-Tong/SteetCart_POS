@@ -10,41 +10,13 @@ class ProductRepository {
   final _categoryDao = CategoryDao();
   final _modifierDao = ModifierDao();
 
-  // ---------------------------------------------------------------------------
-  // Categories
-  // ---------------------------------------------------------------------------
-
-  Future<List<Category>> getCategories() async {
-    final rows = await _categoryDao.getAll();
-    return rows.map((row) {
-      return Category(
-        id: row[CategoryDao.colId] as String,
-        name: row[CategoryDao.colName] as String,
-      );
-    }).toList();
-  }
-
-  Future<void> saveCategory(Category category) async {
-    await _categoryDao.insert({
-      CategoryDao.colId: category.id,
-      CategoryDao.colName: category.name,
-    });
-  }
-
-  Future<void> deleteCategory(String id) async {
-    await _categoryDao.delete(id);
-  }
-
-  // ---------------------------------------------------------------------------
   // Products
-  // ---------------------------------------------------------------------------
-
   Future<List<Product>> getProducts() async {
     final productRows = await _productDao.getAll();
     final List<Product> products = [];
 
     for (final row in productRows) {
-      // 1. Fetch Category
+      // Fetch Category
       Category? category;
       final catId = row[ProductDao.colCategoryId] as String?;
       if (catId != null) {
@@ -57,11 +29,11 @@ class ProductRepository {
         }
       }
 
-      // 2. Fetch Modifiers
+      // Fetch Modifiers
       final productId = row[ProductDao.colId] as String;
       final modifierGroups = await _getModifiersForProduct(productId);
 
-      // 3. Assemble Product
+      // Assemble Product
       products.add(Product(
         id: productId,
         name: row[ProductDao.colName] as String,
@@ -79,7 +51,7 @@ class ProductRepository {
     final db = await AppDatabase.instance();
     
     await db.transaction((txn) async {
-      // 1. Insert Product
+      // Insert Product
       await _productDao.insert({
         ProductDao.colId: product.id,
         ProductDao.colName: product.name,
@@ -88,7 +60,7 @@ class ProductRepository {
         ProductDao.colCategoryId: product.category?.id,
       }, txn: txn);
 
-      // 2. Insert Modifiers
+      // Insert Modifiers
       await _saveModifiers(product.id, product.modifierGroups, txn);
     });
   }
@@ -97,7 +69,7 @@ class ProductRepository {
     final db = await AppDatabase.instance();
     
     await db.transaction((txn) async {
-      // 1. Update Product
+      // Update Product
       await _productDao.update({
         ProductDao.colId: product.id,
         ProductDao.colName: product.name,
@@ -106,20 +78,15 @@ class ProductRepository {
         ProductDao.colCategoryId: product.category?.id,
       }, txn: txn);
 
-      // 2. Replace Modifiers (Delete all old, insert new)
+      // Replace Modifiers (Delete all old, insert new)
       await _modifierDao.deleteModifiersForProduct(product.id, txn: txn);
       await _saveModifiers(product.id, product.modifierGroups, txn);
     });
   }
 
   Future<void> deleteProduct(String id) async {
-    // Cascading delete in DB handles modifiers, but we can be explicit if needed.
     await _productDao.delete(id);
   }
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
 
   Future<List<ModifierGroup>> _getModifiersForProduct(String productId) async {
     final groupRows = await _modifierDao.getGroupsByProductId(productId);

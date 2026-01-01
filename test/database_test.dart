@@ -4,6 +4,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
 import 'package:street_cart_pos/data/local/dao/category_dao.dart';
 import 'package:street_cart_pos/data/local/dao/product_dao.dart';
+import 'package:street_cart_pos/data/repositories/category_repository.dart';
 import 'package:street_cart_pos/data/repositories/order_repository.dart';
 import 'package:street_cart_pos/data/repositories/product_repository.dart';
 import 'package:street_cart_pos/data/repositories/sale_policy_repository.dart';
@@ -114,10 +115,11 @@ void main() {
   group('Repository Integration Tests', () {
     test('ProductRepository: Full Lifecycle (Create, Read, Update w/ Modifiers)', () async {
       final repo = ProductRepository();
+      final categoryRepo = CategoryRepository();
 
       // 1. Create Category
       final category = Category(name: 'Food');
-      await repo.saveCategory(category);
+      await categoryRepo.saveCategory(category);
 
       // 2. Create Product with Modifiers
       final modifierOption = ModifierOptions(name: 'Extra Cheese', price: 0.5);

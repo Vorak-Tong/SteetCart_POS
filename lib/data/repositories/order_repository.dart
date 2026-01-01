@@ -80,7 +80,7 @@ class OrderRepository {
     final db = await AppDatabase.instance();
     
     await db.transaction((txn) async {
-      // 1. Insert Order
+      // Insert Order
       await _orderDao.insert({
         OrderDao.colId: order.id,
         OrderDao.colTimeStamp: order.timeStamp.millisecondsSinceEpoch,
@@ -89,7 +89,7 @@ class OrderRepository {
         OrderDao.colStatus: order.status.index,
       }, txn: txn);
 
-      // 2. Insert Items
+      // Insert Items
       for (final item in order.orderProducts) {
         await _orderItemDao.insert({
           OrderItemDao.colId: item.id,
@@ -99,7 +99,7 @@ class OrderRepository {
         }, txn: txn);
       }
 
-      // 3. Insert Payment (if exists)
+      // Insert Payment (if exists)
       if (order.payment != null) {
         await _paymentDao.insert({
           PaymentDao.colId: order.payment!.id,
@@ -118,7 +118,7 @@ class OrderRepository {
     final db = await AppDatabase.instance();
     
     await db.transaction((txn) async {
-      // 1. Update Order
+      // Update Order
       await _orderDao.update({
         OrderDao.colId: order.id,
         OrderDao.colTimeStamp: order.timeStamp.millisecondsSinceEpoch,
@@ -127,7 +127,7 @@ class OrderRepository {
         OrderDao.colStatus: order.status.index,
       }, txn: txn);
 
-      // 2. Update Items (Delete all and re-insert)
+      // Update Items (Delete all and re-insert)
       await _orderItemDao.deleteByOrderId(order.id, txn: txn);
       for (final item in order.orderProducts) {
         await _orderItemDao.insert({
@@ -138,7 +138,7 @@ class OrderRepository {
         }, txn: txn);
       }
 
-      // 3. Update Payment
+      // Update Payment
       await _paymentDao.deleteByOrderId(order.id, txn: txn);
       if (order.payment != null) {
         await _paymentDao.insert({
