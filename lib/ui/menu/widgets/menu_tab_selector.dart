@@ -12,11 +12,11 @@ class MenuTabSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: menuTabIndex,
-      builder: (context, index, _) {
+    return ListenableBuilder(
+      listenable: menuTabIndex,
+      builder: (context, _) {
         return IndexedStack(
-          index: index,
+          index: menuTabIndex.value,
           children: const [MenuPage(), CategoryPage(), ModifierPage()],
         );
       },

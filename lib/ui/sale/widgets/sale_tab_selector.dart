@@ -11,11 +11,11 @@ class SaleTabSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: saleTabIndex,
-      builder: (context, index, _) {
+    return ListenableBuilder(
+      listenable: saleTabIndex,
+      builder: (context, _) {
         return IndexedStack(
-          index: index,
+          index: saleTabIndex.value,
           children: const [SalePage(), CartPage(), OrderPage()],
         );
       },
