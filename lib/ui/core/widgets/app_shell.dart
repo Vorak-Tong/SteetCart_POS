@@ -11,7 +11,7 @@ class AppShell extends StatelessWidget {
     this.currentRouteName,
   });
 
-  final String title;
+  final Widget title;
   final Widget child;
   final Widget? bottomNavigationBar;
   final String? currentRouteName;
@@ -20,7 +20,7 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: title,
       ),
       drawer: AppDrawer(currentRouteName: currentRouteName),
       body: child,
