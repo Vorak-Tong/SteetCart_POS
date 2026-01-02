@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/menu/menu_tab_state.dart';
 import 'package:street_cart_pos/ui/menu/widgets/category_page.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_page.dart';
-import 'package:street_cart_pos/ui/menu/widgets/modifer_page.dart';
+import 'package:street_cart_pos/ui/menu/widgets/modifier_page.dart';
 
 
 enum MenuTab { product, category, modifier }

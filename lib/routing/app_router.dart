@@ -17,7 +17,7 @@ final GoRouter appRouter = GoRouter(
         final routeKey = _routeKeyFor(state);
 
         return AppShell(
-          title: _titleForRoute(routeKey),
+          title: _titleWidgetForRoute(routeKey),
           currentRouteName: routeKey,
           bottomNavigationBar: _bottomNavigator(routeKey),
           child: child,
@@ -64,18 +64,24 @@ String _routeKeyFor(GoRouterState state) {
   }
 }
 
-String _titleForRoute(String routeKey) {
+Widget _titleWidgetForRoute(String routeKey) {
   switch (routeKey) {
     case 'sale':
-      return 'Sale';
+      return const Text('Sale');
     case 'menu':
-      return 'Menu';
+      return ValueListenableBuilder(
+        valueListenable: menuTabIndex,
+        builder: (context, index, _) {
+          const titles = ['Menu Management', 'Category', 'Modifier'];
+          return Text(titles[index]);
+        },
+      );
     case 'policy':
-      return 'Policy';
+      return const Text('Policy');
     case 'report':
-      return 'Report';
+      return const Text('Report');
     default:
-      return 'Street Cart POS';
+      return const Text('Street Cart POS');
   }
 }
 
