@@ -58,6 +58,8 @@ class CategoryItemCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: Colors.black,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       '$itemCount items',

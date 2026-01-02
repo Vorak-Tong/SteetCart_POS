@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/domain/models/product_model.dart';
 import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
 
 class ProductFormPage extends StatefulWidget {
-  const ProductFormPage({super.key, required this.isEditing});
+  const ProductFormPage({
+    super.key,
+    required this.isEditing,
+    required this.onSave,
+    required this.categories,
+    required this.availableModifiers,
+  });
 
   final bool isEditing;
+  final List<Category> categories;
+  final List<ModifierGroup> availableModifiers;
+  final void Function(
+      String name, String description, double price, String category, List<ModifierGroup> modifiers) onSave;
 
   @override
   State<ProductFormPage> createState() => _ProductFormPageState();
@@ -15,6 +26,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
   final _descriptionController = TextEditingController();
   final _priceController = TextEditingController();
   String? _selectedCategory;
+  final List<ModifierGroup> _selectedModifiers = [];
 
   @override
   void dispose() {
@@ -81,13 +93,22 @@ class _ProductFormPageState extends State<ProductFormPage> {
             const SizedBox(height: 24),
 
             // Item Name
-            const Text(
-              'Item Name',
-              style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
+            const Text.rich(
+              TextSpan(
+                text: 'Item Name',
+                style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
+                children: [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             TextField(
               controller: _nameController,
+              maxLength: 20,
               decoration: InputDecoration(
                 hintText: 'e.g., Ice Latte',
                 hintStyle: const TextStyle(fontSize: 14, color: Color(0xFFCBCBCB)),
@@ -125,9 +146,17 @@ class _ProductFormPageState extends State<ProductFormPage> {
             const SizedBox(height: 20),
 
             // Base Price
-            const Text(
-              'Base Price',
-              style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
+            const Text.rich(
+              TextSpan(
+                text: 'Base Price',
+                style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
+                children: [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -148,9 +177,17 @@ class _ProductFormPageState extends State<ProductFormPage> {
             const SizedBox(height: 20),
 
             // Category
-            const Text(
-              'Category',
-              style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
+            const Text.rich(
+              TextSpan(
+                text: 'Category',
+                style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
+                children: [
+                  TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
             SizedBox(
@@ -172,10 +209,12 @@ class _ProductFormPageState extends State<ProductFormPage> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'Coffee', child: Text('Coffee')),
-                  DropdownMenuItem(value: 'Tea', child: Text('Tea')),
-                ],
+                items: widget.categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category.name,
+                    child: Text(category.name),
+                  );
+                }).toList(),
                 onChanged: (val) => setState(() => _selectedCategory = val),
               ),
             ),
@@ -187,8 +226,36 @@ class _ProductFormPageState extends State<ProductFormPage> {
               style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
             ),
             const SizedBox(height: 8),
+            
+            // Selected Modifiers List
+            ..._selectedModifiers.map((modifier) => Container(
+                  width: double.infinity,
+                  height: 44,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7F7F7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        modifier.name,
+                        style: const TextStyle(fontSize: 14, color: Colors.black),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedModifiers.remove(modifier));
+                        },
+                        child: const Icon(Icons.close, size: 18, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                )),
+
             CustomPaint(
-              painter: DashedBorderPainter(
+              foregroundPainter: DashedBorderPainter(
                 color: const Color(0xFF696969),
                 strokeWidth: 1,
                 dashWidth: 4,
@@ -197,7 +264,41 @@ class _ProductFormPageState extends State<ProductFormPage> {
               ),
               child: InkWell(
                 onTap: () {
-                  // TODO: Add modifier group logic
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      final unselectedModifiers = widget.availableModifiers
+                          .where((m) => !_selectedModifiers.contains(m))
+                          .toList();
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Select Modifier Group',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            if (unselectedModifiers.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: Text('No more modifiers available.'),
+                              )
+                            else
+                              ...unselectedModifiers.map((modifier) => ListTile(
+                                    title: Text(modifier.name),
+                                    onTap: () {
+                                      setState(() => _selectedModifiers.add(modifier));
+                                      Navigator.pop(context);
+                                    },
+                                  )),
+                          ],
+                        ),
+                      );
+                    },
+                  );
                 },
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
@@ -205,7 +306,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                   height: 44,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFECEBEB),
+                    color: const Color(0xFFF9F9F9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
@@ -226,7 +327,29 @@ class _ProductFormPageState extends State<ProductFormPage> {
               height: 44,
               child: FilledButton(
                 onPressed: () {
-                  // TODO: Handle save
+                  final name = _nameController.text.trim();
+                  final priceStr = _priceController.text.trim();
+                  final category = _selectedCategory;
+
+                  if (name.isEmpty || priceStr.isEmpty || category == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please fill in all required fields (*).'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
+                  final price = double.tryParse(priceStr);
+                  if (price == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please enter a valid price.')),
+                    );
+                    return;
+                  }
+
+                  widget.onSave(name, _descriptionController.text.trim(), price, category, _selectedModifiers);
                   Navigator.pop(context);
                 },
                 style: FilledButton.styleFrom(

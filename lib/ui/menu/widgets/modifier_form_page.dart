@@ -310,7 +310,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
 
             // Add Another Option Button
             CustomPaint(
-              painter: DashedBorderPainter(
+              foregroundPainter: DashedBorderPainter(
                 color: const Color(0xFF696969),
                 strokeWidth: 1,
                 dashWidth: 4,
