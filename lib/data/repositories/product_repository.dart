@@ -38,7 +38,7 @@ class ProductRepository {
         id: productId,
         name: row[ProductDao.colName] as String,
         basePrice: (row[ProductDao.colBasePrice] as num).toDouble(),
-        image: row[ProductDao.colImage] as String?,
+        // image: row[ProductDao.colImage] as String?,
         category: category,
         modifierGroups: modifierGroups,
       ));
@@ -56,7 +56,7 @@ class ProductRepository {
         ProductDao.colId: product.id,
         ProductDao.colName: product.name,
         ProductDao.colBasePrice: product.basePrice,
-        ProductDao.colImage: product.image,
+        // ProductDao.colImage: product.image,
         ProductDao.colCategoryId: product.category?.id,
       }, txn: txn);
 
@@ -74,7 +74,7 @@ class ProductRepository {
         ProductDao.colId: product.id,
         ProductDao.colName: product.name,
         ProductDao.colBasePrice: product.basePrice,
-        ProductDao.colImage: product.image,
+        // ProductDao.colImage: product.image,
         ProductDao.colCategoryId: product.category?.id,
       }, txn: txn);
 
