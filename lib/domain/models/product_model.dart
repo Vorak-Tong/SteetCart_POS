@@ -2,14 +2,20 @@ import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
 
+enum ModifierSelectionType { single, multi }
+
+enum ModifierPriceBehavior { fixed, none }
+
 // Category Class
 class Category {
   final String id;
   final String name;
+  final bool isActive;
 
   Category({
     String? id,
     required this.name,
+    this.isActive = true,
   }) : id = id ?? uuid.v4();
   
 }
@@ -19,23 +25,33 @@ class ModifierOptions {
   final String id;
   final String name;
   final double? price;
+  final bool isDefault;
 
   ModifierOptions({
     String? id,
     required this.name,
     this.price,
+    this.isDefault = false,
   }) : id = id ?? uuid.v4();
 }
 
 class ModifierGroup {
   final String id;
   final String name;
+  final ModifierSelectionType selectionType;
+  final ModifierPriceBehavior priceBehavior;
+  final int minSelection;
+  final int maxSelection;
   
   final List<ModifierOptions> modifierOptions;
 
   ModifierGroup({
     String? id,
     required this.name,
+    this.selectionType = ModifierSelectionType.single,
+    this.priceBehavior = ModifierPriceBehavior.none,
+    this.minSelection = 0,
+    this.maxSelection = 1,
     this.modifierOptions = const [],
   }) : id = id ?? uuid.v4();
 }
@@ -44,8 +60,9 @@ class ModifierGroup {
 class Product {
   final String id;
   final String name;
+  final String? description;
   final double basePrice;
-  final String? image;
+  final String? imagePath;
   
   final Category? category; 
   
@@ -54,8 +71,9 @@ class Product {
   Product({
     String? id,
     required this.name,
+    this.description,
     required this.basePrice,
-    this.image,
+    this.imagePath,
     this.category,
     this.modifierGroups = const [],
   }) : id = id ?? uuid.v4();
