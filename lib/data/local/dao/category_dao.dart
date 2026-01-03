@@ -7,6 +7,7 @@ class CategoryDao {
   // Column names
   static const colId = 'id';
   static const colName = 'name';
+  static const colIsActive = 'is_active';
 
   Future<List<Map<String, Object?>>> getAll() async {
     final db = await AppDatabase.instance();

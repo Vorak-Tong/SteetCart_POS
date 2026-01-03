@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:uuid/uuid.dart';
 
 class CategoryViewModel extends ChangeNotifier {
   final MenuRepository _repository = MenuRepository();
@@ -23,19 +24,28 @@ class CategoryViewModel extends ChangeNotifier {
         .length;
   }
 
-  void addCategory(String name, bool isActive) {
-    _repository.addCategory(Category(name: name, isActive: isActive));
+  Future<void> addCategory(String name, bool isActive) async {
+    try {
+      await _repository.addCategory(Category(
+        id: const Uuid().v4(),
+        name: name,
+        isActive: isActive,
+      ));
+    } catch (e) {
+      print('Error adding category: $e');
+      rethrow;
+    }
   }
 
-  void updateCategory(Category category, String newName, bool newIsActive) {
-    _repository.updateCategory(Category(
+  Future<void> updateCategory(Category category, String newName, bool newIsActive) async {
+    await _repository.updateCategory(Category(
       id: category.id,
       name: newName,
       isActive: newIsActive,
     ));
   }
 
-  void deleteCategory(Category category) {
-    _repository.deleteCategory(category.id);
+  Future<void> deleteCategory(Category category) async {
+    await _repository.deleteCategory(category.id);
   }
 }

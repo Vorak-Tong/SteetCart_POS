@@ -2,11 +2,15 @@ import 'package:flutter/material.dart' hide Category;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_page.dart';
+import 'package:street_cart_pos/domain/models/product_model.dart';
+import '../../helpers/fake_menu_repository.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
-  setUp(() {
-    // Reset the singleton repository before each test
-    MenuRepository().reset();
+  setUp(() async {
+    MenuRepository.setInstance(FakeMenuRepository());
+    // Seed Data
+    await MenuRepository().addModifierGroup(ModifierGroup(id: const Uuid().v4(), name: 'Ice Level'));
   });
 
   testWidgets('ModifierPage add and edit flow', (WidgetTester tester) async {

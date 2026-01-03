@@ -29,6 +29,14 @@ class ModifierDao {
     );
   }
 
+  Future<List<Map<String, Object?>>> getGlobalGroups() async {
+    final db = await AppDatabase.instance();
+    return await db.query(
+      tableGroups,
+      where: '$colGroupProductId IS NULL',
+    );
+  }
+
   Future<int> insertGroup(Map<String, Object?> data, {Transaction? txn}) async {
     final DatabaseExecutor db = txn ?? await AppDatabase.instance();
     return await db.insert(
@@ -44,6 +52,15 @@ class ModifierDao {
       tableGroups,
       where: '$colGroupProductId = ?',
       whereArgs: [productId],
+    );
+  }
+
+  Future<int> deleteGroup(String id, {Transaction? txn}) async {
+    final DatabaseExecutor db = txn ?? await AppDatabase.instance();
+    return await db.delete(
+      tableGroups,
+      where: '$colGroupId = ?',
+      whereArgs: [id],
     );
   }
 

@@ -82,13 +82,12 @@ class _MenuPageState extends State<MenuPage> {
                           isEditing: false,
                           categories: _viewModel.categories,
                           availableModifiers: _viewModel.modifierGroups,
-                          onSave: (name, description, price, categoryName, modifiers) {
+                          onSave: (name, description, price, categoryName, modifiers) async {
                             final category = _viewModel.categories.firstWhere(
                               (c) => c.name == categoryName,
-                              orElse: () => Category(name: categoryName),
                             );
 
-                            _viewModel.addProduct(Product(
+                            await _viewModel.addProduct(Product(
                               name: name,
                               description: description,
                               basePrice: price,
