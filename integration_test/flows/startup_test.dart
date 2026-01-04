@@ -1,10 +1,10 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
 import 'package:street_cart_pos/main.dart' as app;
-import 'package:street_cart_pos/ui/menu/widgets/menu_page.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -24,10 +24,26 @@ void main() {
     // Launch the app
     await app.main();
     
-    // Wait for the app to settle (animations, DB loading)
+    // Trigger an initial pump to ensure the widget tree is built
+    await tester.pump();
+    
+    // Robust wait for initial navigation (GoRouter async redirects, etc.)
+    // We pump multiple times with duration to let async tasks complete
+    for (int i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 500));
+    }
     await tester.pumpAndSettle();
 
-    // Verify we are on the MenuPage
-    expect(find.byType(MenuPage), findsOneWidget);
+    // Verify the app root is present
+    expect(find.byType(MaterialApp), findsOneWidget);
+
+    // Verify the POS screen is loaded by checking for key UI elements.
+    // The logs confirmed "Search products" and "Cart" are visible.
+    expect(find.text('Search products'), findsOneWidget);
+    expect(find.text('Cart'), findsOneWidget);
+    
+    // Verify database data is loaded (e.g. "Chicken Over Rice" from logs)
+    // This confirms the full stack (UI + DB) is working.
+    expect(find.text('Chicken Over Rice'), findsOneWidget);
   });
 }
