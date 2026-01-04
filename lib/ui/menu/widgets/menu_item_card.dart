@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
 import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
+import 'package:street_cart_pos/ui/core/utils/number_format.dart';
 
 class MenuItemCard extends StatelessWidget {
-  const MenuItemCard({
-    super.key,
-    required this.product,
-    this.onTap,
-  });
+  const MenuItemCard({super.key, required this.product, this.onTap});
 
   final Product product;
   final VoidCallback? onTap;
@@ -59,7 +56,9 @@ class MenuItemCard extends StatelessWidget {
                       // Modifiers
                       Text(
                         product.modifierGroups.isNotEmpty
-                            ? product.modifierGroups.map((g) => g.name).join(', ')
+                            ? product.modifierGroups
+                                  .map((g) => g.name)
+                                  .join(', ')
                             : 'No Modifiers',
                         style: const TextStyle(
                           color: Color(0xFFCBCBCB),
@@ -88,7 +87,7 @@ class MenuItemCard extends StatelessWidget {
                       ),
                       // Base Price
                       Text(
-                        'Base Price: \$${product.basePrice.toStringAsFixed(2)}',
+                        'Base Price: ${formatUsd(product.basePrice)}',
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 10,

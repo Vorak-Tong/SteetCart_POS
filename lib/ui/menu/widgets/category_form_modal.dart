@@ -88,6 +88,7 @@ class _CategoryFormModalState extends State<CategoryFormModal> {
                   // Input Field
                   TextField(
                     controller: _nameController,
+                    maxLength: 15,
                     decoration: InputDecoration(
                       hintText: 'e.g., Coffee',
                       hintStyle: const TextStyle(

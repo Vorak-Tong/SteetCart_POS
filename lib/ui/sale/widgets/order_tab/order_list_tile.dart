@@ -1,0 +1,256 @@
+import 'package:flutter/material.dart';
+import 'package:street_cart_pos/domain/models/enums.dart';
+import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/ui/core/utils/number_format.dart';
+import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_status_edit_sheet.dart';
+
+class OrderListTile extends StatelessWidget {
+  const OrderListTile({
+    super.key,
+    required this.order,
+    required this.expanded,
+    required this.onToggleExpanded,
+    required this.onUpdateStatus,
+  });
+
+  final Order order;
+  final bool expanded;
+  final VoidCallback onToggleExpanded;
+  final ValueChanged<SaleStatus> onUpdateStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final time = MaterialLocalizations.of(context).formatTimeOfDay(
+      TimeOfDay.fromDateTime(order.timeStamp),
+      alwaysUse24HourFormat: true,
+    );
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            title: Text(_orderTitle(order.id)),
+            subtitle: Text('$time • ${_orderTypeLabel(order.orderType)}'),
+            trailing: Text(
+              formatUsd(order.getTotal()),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 6, 0),
+            child: Row(
+              children: [
+                IconButton(
+                  key: ValueKey('order_toggle_${order.id}'),
+                  tooltip: expanded ? 'Collapse' : 'Expand',
+                  onPressed: onToggleExpanded,
+                  icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
+                ),
+                const Spacer(),
+                _StatusChip(status: order.status),
+                const SizedBox(width: 6),
+                IconButton(
+                  key: ValueKey('order_edit_status_${order.id}'),
+                  tooltip: 'Edit status',
+                  onPressed: () async {
+                    final next = await showOrderStatusEditSheet(
+                      context,
+                      current: order.status,
+                    );
+                    if (next != null && next != order.status) {
+                      onUpdateStatus(next);
+                    }
+                  },
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+          ),
+          ClipRect(
+            child: AnimatedSize(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
+              alignment: Alignment.topCenter,
+              child: expanded
+                  ? _OrderItems(order: order)
+                  : const SizedBox.shrink(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderItems extends StatelessWidget {
+  const _OrderItems({required this.order});
+
+  final Order order;
+
+  List<Widget> _buildDetailLines(
+    ThemeData theme, {
+    required List<OrderModifierSelection> modifierSelections,
+    required String? note,
+  }) {
+    final lines = <Widget>[];
+
+    for (final selection in modifierSelections) {
+      if (selection.optionNames.isEmpty) {
+        continue;
+      }
+      lines.add(
+        Padding(
+          padding: const EdgeInsets.only(left: 22, top: 2),
+          child: Text(
+            '${selection.groupName}: ${selection.optionNames.join(', ')}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final trimmed = note?.trim();
+    if (trimmed != null && trimmed.isNotEmpty) {
+      lines.add(
+        Padding(
+          padding: const EdgeInsets.only(left: 22, top: 2),
+          child: Text(
+            'Note: $trimmed',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return lines;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final item in order.orderProducts)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        '${item.quantity}×',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.product?.name ?? 'Unknown item',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                  ..._buildDetailLines(
+                    theme,
+                    modifierSelections: item.modifierSelections,
+                    note: item.note,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+String _orderTitle(String id) {
+  final parts = id.split('-');
+  final number = parts.isEmpty ? id : parts.last;
+  return 'Order $number';
+}
+
+String _orderTypeLabel(OrderType type) {
+  switch (type) {
+    case OrderType.dineIn:
+      return 'Dine in';
+    case OrderType.takeAway:
+      return 'Take away';
+    case OrderType.delivery:
+      return 'Delivery';
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.status});
+
+  final SaleStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (bg, fg, label) = _statusStyle(theme.colorScheme, status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
+(Color, Color, String) _statusStyle(ColorScheme scheme, SaleStatus status) {
+  switch (status) {
+    case SaleStatus.inPrep:
+      return (
+        scheme.secondaryContainer,
+        scheme.onSecondaryContainer,
+        'In prep',
+      );
+    case SaleStatus.ready:
+      return (scheme.tertiaryContainer, scheme.onTertiaryContainer, 'Ready');
+    case SaleStatus.served:
+      return (scheme.primaryContainer, scheme.onPrimaryContainer, 'Served');
+    case SaleStatus.cancelled:
+      return (scheme.errorContainer, scheme.onErrorContainer, 'Cancelled');
+    case SaleStatus.draft:
+      return (scheme.surfaceContainerHighest, scheme.onSurfaceVariant, 'Draft');
+    case SaleStatus.finalized:
+      return (
+        scheme.surfaceContainerHighest,
+        scheme.onSurfaceVariant,
+        'Finalized',
+      );
+  }
+}

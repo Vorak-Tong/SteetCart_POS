@@ -36,7 +36,7 @@ class OrderRepository {
               id: productRow[ProductDao.colId] as String,
               name: productRow[ProductDao.colName] as String,
               basePrice: (productRow[ProductDao.colBasePrice] as num).toDouble(),
-              image: productRow[ProductDao.colImage] as String?,
+              // image: productRow[ProductDao.colImage] as String?,
             );
           }
         }

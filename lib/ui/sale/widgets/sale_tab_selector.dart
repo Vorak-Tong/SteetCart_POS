@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/sale/sale_tab_state.dart';
-import 'package:street_cart_pos/ui/sale/widgets/cart_page.dart';
-import 'package:street_cart_pos/ui/sale/widgets/order_page.dart';
-import 'package:street_cart_pos/ui/sale/widgets/sale_page.dart';
+import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_page.dart';
+import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_page.dart';
+import 'package:street_cart_pos/ui/sale/widgets/sale_tab/sale_page.dart';
 
 enum SaleTab { sale, cart, order }
 
