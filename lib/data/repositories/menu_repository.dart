@@ -94,7 +94,6 @@ class MenuRepository extends ChangeNotifier {
   Future<void> reset() async {
     // In tests, the DB is reset via AppDatabase.reset().
     // We just need to refresh our local cache to reflect the empty DB.
-    _modifierGroups.clear();
     await _refreshData();
   }
 }
