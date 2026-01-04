@@ -22,7 +22,11 @@ Future<void> main() async {
   }
 
   // Initialize repository data
-  await MenuRepository().init();
+  try {
+    await MenuRepository().init();
+  } catch (e) {
+    debugPrint('Failed to initialize repository: $e');
+  }
 
   runApp(const MyApp());
 }
