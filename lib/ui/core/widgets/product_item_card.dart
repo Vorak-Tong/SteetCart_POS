@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
+import 'package:street_cart_pos/ui/core/utils/number_format.dart';
+import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
 // import 'package:modular_pos/core/widgets/network_image_helper_stub.dart'
 //     if (dart.library.html) 'package:modular_pos/core/widgets/network_image_helper_web.dart';
 
@@ -48,7 +49,7 @@ class ProductItemCard extends StatelessWidget {
                     //         _buildPlaceholder(context),
                     //       )
                     //     : _buildPlaceholder(context),
-                    _buildPlaceholder(context),
+                    ProductImage(imagePath: imagePath),
                     Positioned.fill(
                       child: GestureDetector(
                         behavior: HitTestBehavior.translucent,
@@ -68,7 +69,9 @@ class ProductItemCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -78,7 +81,10 @@ class ProductItemCard extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(8),
@@ -88,7 +94,7 @@ class ProductItemCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '\$${price.toStringAsFixed(2)}',
+                          formatUsd(price),
                           style: textTheme.titleSmall?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.bold,
@@ -101,41 +107,6 @@ class ProductItemCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  /// A private helper widget to show a consistent placeholder.
-  Widget _buildPlaceholder(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = theme.colorScheme.primary;
-    final textStyle =
-        theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600);
-
-    const radius = 12.0;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: CustomPaint(
-        foregroundPainter: DashedBorderPainter(
-          color: color,
-          strokeWidth: 1.4,
-          dashWidth: 6,
-          dashSpace: 4,
-          borderRadius: radius,
-        ),
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.image_outlined, color: color, size: 32),
-              const SizedBox(height: 6),
-              Text('No image', style: textStyle),
-            ],
-          ),
         ),
       ),
     );

@@ -119,6 +119,48 @@ List<Product> _mockProducts() {
       name: 'Iced Tea',
       basePrice: 2.25,
       category: beverages,
+      modifierGroups: [
+        ModifierGroup(
+          id: 'mod-sugar-level',
+          name: 'Sugar Level',
+          selectionType: ModifierSelectionType.single,
+          priceBehavior: ModifierPriceBehavior.none,
+          minSelection: 1,
+          maxSelection: 1,
+          modifierOptions: [
+            ModifierOptions(id: 'sugar-0', name: 'No Sugar'),
+            ModifierOptions(id: 'sugar-1', name: 'Less Sugar'),
+            ModifierOptions(id: 'sugar-2', name: 'Regular', isDefault: true),
+            ModifierOptions(id: 'sugar-3', name: 'Extra Sugar'),
+          ],
+        ),
+        ModifierGroup(
+          id: 'mod-size',
+          name: 'Size',
+          selectionType: ModifierSelectionType.single,
+          priceBehavior: ModifierPriceBehavior.fixed,
+          minSelection: 1,
+          maxSelection: 1,
+          modifierOptions: [
+            ModifierOptions(id: 'size-m', name: 'Medium', price: 0, isDefault: true),
+            ModifierOptions(id: 'size-l', name: 'Large', price: 0.75),
+            ModifierOptions(id: 'size-xl', name: 'X-Large', price: 1.25),
+          ],
+        ),
+        ModifierGroup(
+          id: 'mod-toppings',
+          name: 'Toppings',
+          selectionType: ModifierSelectionType.multi,
+          priceBehavior: ModifierPriceBehavior.fixed,
+          minSelection: 0,
+          maxSelection: 0,
+          modifierOptions: [
+            ModifierOptions(id: 'top-lemon', name: 'Lemon', price: 0.25),
+            ModifierOptions(id: 'top-mint', name: 'Mint', price: 0.25),
+            ModifierOptions(id: 'top-boba', name: 'Boba', price: 0.75),
+          ],
+        ),
+      ],
     ),
     Product(
       id: 'prd-008',

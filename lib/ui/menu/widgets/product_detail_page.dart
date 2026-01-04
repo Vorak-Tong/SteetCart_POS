@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/ui/core/utils/number_format.dart';
 
 class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({super.key, required this.product});
@@ -50,7 +51,11 @@ class ProductDetailPage extends StatelessWidget {
                   color: const Color(0xFFF7F7F7),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.image_outlined, size: 40, color: Color(0xFFCBCBCB)),
+                child: const Icon(
+                  Icons.image_outlined,
+                  size: 40,
+                  color: Color(0xFFCBCBCB),
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -64,11 +69,14 @@ class ProductDetailPage extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Base Price
-            _buildReadOnlyField('Base Price', '\$ ${product.basePrice.toStringAsFixed(2)}'),
+            _buildReadOnlyField('Base Price', formatUsd(product.basePrice)),
             const SizedBox(height: 20),
 
             // Category
-            _buildReadOnlyField('Category', product.category?.name ?? 'Uncategorized'),
+            _buildReadOnlyField(
+              'Category',
+              product.category?.name ?? 'Uncategorized',
+            ),
             const SizedBox(height: 20),
 
             // Modifier Groups
@@ -83,35 +91,34 @@ class ProductDetailPage extends StatelessWidget {
                 style: TextStyle(fontSize: 14, color: Color(0xFFCBCBCB)),
               )
             else
-              ...product.modifierGroups.map((group) => Container(
-                    width: 357,
-                    height: 44,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF7F7F7),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          group.name,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
+              ...product.modifierGroups.map(
+                (group) => Container(
+                  width: 357,
+                  height: 44,
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF7F7F7),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        group.name,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black,
                         ),
-                        const Text(
-                          '3 options', // Mock count
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
+                      ),
+                      const Text(
+                        '3 options', // Mock count
+                        style: TextStyle(fontSize: 12, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
       ),

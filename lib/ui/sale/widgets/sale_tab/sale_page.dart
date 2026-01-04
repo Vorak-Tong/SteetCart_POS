@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/core/widgets/category_filter_chips.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_grid.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_search_bar.dart';
+import 'package:street_cart_pos/ui/sale/widgets/sale_tab/product_selection_sheet.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/sale_viewmodel.dart';
 
 class SalePage extends StatefulWidget {
@@ -45,7 +46,13 @@ class _SalePageState extends State<SalePage> {
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: ProductGrid(products: _viewModel.filteredProducts),
+                child: ProductGrid(
+                  products: _viewModel.filteredProducts,
+                  onProductTap: (product) => showProductSelectionSheet(
+                    context,
+                    product: product,
+                  ),
+                ),
               ),
             ],
           ),

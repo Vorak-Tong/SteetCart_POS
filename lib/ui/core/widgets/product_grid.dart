@@ -27,6 +27,7 @@ class ProductGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final product = products[index];
         return ProductItemCard(
+          imagePath: product.imagePath,
           title: product.name,
           category: product.category?.name ?? 'Uncategorized',
           price: product.basePrice,
@@ -36,4 +37,3 @@ class ProductGrid extends StatelessWidget {
     );
   }
 }
-
