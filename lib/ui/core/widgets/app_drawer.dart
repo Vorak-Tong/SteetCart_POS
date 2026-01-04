@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:street_cart_pos/ui/core/widgets/database_viewer_page.dart';
+
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key, required this.currentRouteName});
 
@@ -56,6 +58,17 @@ class AppDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).pop();
                 context.goNamed('report');
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.storage),
+              title: const Text('Database Viewer'),
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const DatabaseViewerPage()),
+                );
               },
             ),
           ],
