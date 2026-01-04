@@ -54,7 +54,7 @@ class MenuViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addProduct(Product product) {
-    _repository.addProduct(product);
+  Future<void> addProduct(Product product) async {
+    await _repository.addProduct(product);
   }
 }

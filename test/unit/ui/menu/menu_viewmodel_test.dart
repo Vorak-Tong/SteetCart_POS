@@ -2,12 +2,26 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/menu_viewmodel.dart';
+import '../../../helpers/fake_menu_repository.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   late MenuViewModel viewModel;
 
-  setUp(() {
-    MenuRepository().reset();
+  setUp(() async {
+    MenuRepository.setInstance(FakeMenuRepository());
+
+    final repo = MenuRepository();
+    await repo.addCategory(Category(id: const Uuid().v4(), name: 'Coffee'));
+    await repo.addCategory(Category(id: const Uuid().v4(), name: 'Tea'));
+    await repo.addCategory(Category(id: const Uuid().v4(), name: 'Matcha'));
+    await repo.addCategory(Category(id: const Uuid().v4(), name: 'Smoothies'));
+    
+    final coffee = repo.categories.firstWhere((c) => c.name == 'Coffee');
+    await repo.addProduct(Product(id: const Uuid().v4(), name: 'Iced Latte', basePrice: 2.5, category: coffee));
+    await repo.addProduct(Product(id: const Uuid().v4(), name: 'Cappuccino', basePrice: 3.0, category: coffee));
+    await repo.addProduct(Product(id: const Uuid().v4(), name: 'Green Tea Latte', basePrice: 3.5));
+
     viewModel = MenuViewModel();
   });
 
@@ -54,6 +68,7 @@ void main() {
 
   test('addProduct adds product to list', () {
     final product = Product(
+      id: const Uuid().v4(),
       name: 'New Item',
       basePrice: 5.0,
     );

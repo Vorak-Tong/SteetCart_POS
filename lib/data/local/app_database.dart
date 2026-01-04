@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -5,18 +6,28 @@ import 'package:sqflite/sqflite.dart';
 class AppDatabase {
   AppDatabase._();
 
-  static const _dbName = 'street_cart_pos.db';
-  static const _dbVersion = 1;
+  static const _dbName = 'street_cart_pos_v3.db';
+  static const _dbVersion = 3;
 
   static Database? _db;
+
+  static String? _testPath;
+
+  @visibleForTesting
+  static void switchToInMemoryForTesting() {
+    _testPath = inMemoryDatabasePath;
+  }
 
   static Future<Database> instance() async {
     if (_db != null) {
       return _db!;
     }
 
-    final directory = await getApplicationSupportDirectory();
-    final dbPath = p.join(directory.path, _dbName);
+    String dbPath = _testPath ?? '';
+    if (dbPath.isEmpty) {
+      final directory = await getApplicationSupportDirectory();
+      dbPath = p.join(directory.path, _dbName);
+    }
     _db = await openDatabase(
       dbPath,
       version: _dbVersion,
@@ -37,7 +48,8 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE categories (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        is_active INTEGER NOT NULL DEFAULT 1
       )
     ''');
 
@@ -58,7 +70,7 @@ class AppDatabase {
       CREATE TABLE modifier_groups (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        product_id TEXT NOT NULL,
+        product_id TEXT,
         FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
       )
     ''');
@@ -126,14 +138,44 @@ class AppDatabase {
     int oldVersion,
     int newVersion,
   ) async {
-    // TODO: Handle schema migrations.
+    if (oldVersion < 2) {
+      await db.execute('ALTER TABLE categories ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1');
+    }
+    if (oldVersion < 3) {
+      // Recreate modifier_groups to allow nullable product_id for Global Modifiers
+      // We drop both tables to ensure clean schema recreation
+      await db.execute('DROP TABLE IF EXISTS modifier_options');
+      await db.execute('DROP TABLE IF EXISTS modifier_groups');
+
+      await db.execute('''
+        CREATE TABLE modifier_groups (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          product_id TEXT,
+          FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+        )
+      ''');
+
+      await db.execute('''
+        CREATE TABLE modifier_options (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          price REAL,
+          group_id TEXT NOT NULL,
+          FOREIGN KEY (group_id) REFERENCES modifier_groups (id) ON DELETE CASCADE
+        )
+      ''');
+    }
   }
 
   static Future<void> reset() async {
     await close();
-    final directory = await getApplicationSupportDirectory();
-    final dbPath = p.join(directory.path, _dbName);
-    await deleteDatabase(dbPath);
+    // Only delete the file if we are NOT in memory
+    if (_testPath == null) {
+      final directory = await getApplicationSupportDirectory();
+      final dbPath = p.join(directory.path, _dbName);
+      await deleteDatabase(dbPath);
+    }
   }
 
   static Future<void> close() async {

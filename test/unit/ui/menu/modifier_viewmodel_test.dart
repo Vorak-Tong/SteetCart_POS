@@ -1,12 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/modifier_viewmodel.dart';
+import 'package:street_cart_pos/domain/models/product_model.dart';
+import '../../../helpers/fake_menu_repository.dart';
+import 'package:uuid/uuid.dart';
 
 void main() {
   late ModifierViewModel viewModel;
 
-  setUp(() {
-    MenuRepository().reset();
+  setUp(() async {
+    MenuRepository.setInstance(FakeMenuRepository());
+    
+    final repo = MenuRepository();
+    await repo.addModifierGroup(ModifierGroup(id: const Uuid().v4(), name: 'Ice Level', modifierOptions: [ModifierOptions(id: const Uuid().v4(), name: 'Option 1'), ModifierOptions(id: const Uuid().v4(), name: 'Option 2'), ModifierOptions(id: const Uuid().v4(), name: 'Option 3'), ModifierOptions(id: const Uuid().v4(), name: 'Option 4')]));
+    await repo.addModifierGroup(ModifierGroup(id: const Uuid().v4(), name: 'Sugar Level'));
+    await repo.addModifierGroup(ModifierGroup(id: const Uuid().v4(), name: 'Size'));
+    await repo.addModifierGroup(ModifierGroup(id: const Uuid().v4(), name: 'Toppings'));
+
     viewModel = ModifierViewModel();
   });
 

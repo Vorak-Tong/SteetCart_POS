@@ -1,13 +1,20 @@
-import 'package:flutter/material.dart' ;
+import 'package:flutter/material.dart' hide Category;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
 import 'package:street_cart_pos/ui/menu/widgets/category_page.dart';
+import '../../helpers/fake_menu_repository.dart';
 
 void main() {
-  setUp(() {
-    // Reset the singleton repository before each test to ensure a clean state
-    MenuRepository().reset();
+  setUp(() async {
+    MenuRepository.setInstance(FakeMenuRepository());
+
+    // Seed Data
+    final repo = MenuRepository();
+    await repo.addCategory(Category(name: 'Coffee'));
+    final coffee = repo.categories.first;
+    await repo.addProduct(Product(name: 'Iced Latte', basePrice: 3.5, category: coffee));
+    await repo.addProduct(Product(name: 'Cappuccino', basePrice: 4.0, category: coffee));
   });
 
   testWidgets('CategoryPage updates item count when product is added', (WidgetTester tester) async {
@@ -38,7 +45,7 @@ void main() {
     final repo = MenuRepository();
     final coffeeCategory = repo.categories.firstWhere((c) => c.name == 'Coffee');
     
-    repo.addProduct(Product(
+    await repo.addProduct(Product(
       name: 'Espresso',
       basePrice: 2.0,
       category: coffeeCategory,
@@ -46,6 +53,9 @@ void main() {
 
     // 4. Pump to process the ChangeNotifier notification and rebuild UI
     await tester.pump();
+
+    // Verify repo has updated data (sanity check)
+    expect(repo.products.where((p) => p.category?.id == coffeeCategory.id).length, 3);
 
     // 5. Verify Updated Count
     expect(
