@@ -59,4 +59,73 @@ class ReportRepository {
       };
     }).toList();
   }
+
+  /// Gets the total number of orders in the date range.
+  Future<int> getTotalOrders(DateTime start, DateTime end) async {
+    final db = await AppDatabase.instance();
+    final startStr = start.toIso8601String();
+    final endStr = end.toIso8601String();
+
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) as count FROM orders WHERE created_at BETWEEN ? AND ?',
+      [startStr, endStr],
+    );
+
+    if (result.isNotEmpty && result.first['count'] != null) {
+      return (result.first['count'] as num).toInt();
+    }
+    return 0;
+  }
+
+  /// Gets the total quantity of items sold in the date range.
+  Future<int> getTotalItemsSold(DateTime start, DateTime end) async {
+    final db = await AppDatabase.instance();
+    final startStr = start.toIso8601String();
+    final endStr = end.toIso8601String();
+
+    final result = await db.rawQuery('''
+      SELECT SUM(oi.quantity) as count 
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.created_at BETWEEN ? AND ?
+    ''', [startStr, endStr]);
+
+    if (result.isNotEmpty && result.first['count'] != null) {
+      return (result.first['count'] as num).toInt();
+    }
+    return 0;
+  }
+
+  /// Gets the percentage distribution of order types (e.g., Dine-in vs Take-away).
+  Future<Map<String, int>> getOrderTypePercentages(DateTime start, DateTime end) async {
+    final db = await AppDatabase.instance();
+    final startStr = start.toIso8601String();
+    final endStr = end.toIso8601String();
+
+    try {
+      final result = await db.rawQuery('''
+        SELECT order_type, COUNT(*) as count 
+        FROM orders 
+        WHERE created_at BETWEEN ? AND ?
+        GROUP BY order_type
+      ''', [startStr, endStr]);
+
+      int total = 0;
+      final counts = <String, int>{};
+      
+      for (var row in result) {
+        final type = row['order_type'] as String? ?? 'Unknown';
+        final count = (row['count'] as num).toInt();
+        counts[type] = count;
+        total += count;
+      }
+
+      if (total == 0) return {};
+
+      return counts.map((key, value) => MapEntry(key, (value / total * 100).round()));
+    } catch (e) {
+      // Return empty if table/column doesn't exist yet
+      return {};
+    }
+  }
 }

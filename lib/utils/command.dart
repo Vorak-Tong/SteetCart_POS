@@ -23,3 +23,25 @@ class CommandWithParam<P, R> extends ChangeNotifier {
     }
   }
 }
+
+class Command<R> extends ChangeNotifier {
+  Command(this._action);
+
+  final Future<R> Function() _action;
+
+  bool _running = false;
+  bool get running => _running;
+
+  Future<void> execute() async {
+    if (_running) return;
+    _running = true;
+    notifyListeners();
+
+    try {
+      await _action();
+    } finally {
+      _running = false;
+      notifyListeners();
+    }
+  }
+}
