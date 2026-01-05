@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
 
-Future<SaleStatus?> showOrderStatusEditSheet(
+Future<OrderStatus?> showOrderStatusEditSheet(
   BuildContext context, {
-  required SaleStatus current,
+  required OrderStatus current,
 }) {
-  return showModalBottomSheet<SaleStatus>(
+  return showModalBottomSheet<OrderStatus>(
     context: context,
     useSafeArea: true,
     showDragHandle: true,
@@ -16,11 +16,20 @@ Future<SaleStatus?> showOrderStatusEditSheet(
 class OrderStatusEditSheet extends StatelessWidget {
   const OrderStatusEditSheet({super.key, required this.current});
 
-  final SaleStatus current;
+  final OrderStatus current;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final surface = theme.colorScheme.surface;
+    final evenBg = Color.alphaBlend(
+      theme.colorScheme.onSurface.withOpacity(0.02),
+      surface,
+    );
+    final oddBg = Color.alphaBlend(
+      theme.colorScheme.onSurface.withOpacity(0.05),
+      surface,
+    );
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
@@ -34,42 +43,47 @@ class OrderStatusEditSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          ..._editableStatuses.map(
-            (status) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(_statusLabel(status)),
-              trailing: status == current
-                  ? const Icon(Icons.check, size: 18)
-                  : const SizedBox.shrink(),
-              onTap: () => Navigator.of(context).pop(status),
-            ),
-          ),
+          ..._editableStatuses.asMap().entries.map((entry) {
+            final index = entry.key;
+            final status = entry.value;
+            return Material(
+              color: index.isEven ? evenBg : oddBg,
+              borderRadius: BorderRadius.circular(10),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                title: Text(_statusLabel(status)),
+                trailing: status == current
+                    ? const Icon(Icons.check, size: 18)
+                    : const SizedBox.shrink(),
+                onTap: () => Navigator.of(context).pop(status),
+              ),
+            );
+          }),
         ],
       ),
     );
   }
 }
 
-const _editableStatuses = <SaleStatus>[
-  SaleStatus.inPrep,
-  SaleStatus.ready,
-  SaleStatus.served,
-  SaleStatus.cancelled,
+const _editableStatuses = <OrderStatus>[
+  OrderStatus.inPrep,
+  OrderStatus.ready,
+  OrderStatus.served,
+  OrderStatus.cancel,
 ];
 
-String _statusLabel(SaleStatus status) {
+String _statusLabel(OrderStatus status) {
   switch (status) {
-    case SaleStatus.inPrep:
+    case OrderStatus.inPrep:
       return 'In prep';
-    case SaleStatus.ready:
+    case OrderStatus.ready:
       return 'Ready';
-    case SaleStatus.served:
+    case OrderStatus.served:
       return 'Served';
-    case SaleStatus.cancelled:
+    case OrderStatus.cancel:
       return 'Cancelled';
-    case SaleStatus.draft:
-      return 'Draft';
-    case SaleStatus.finalized:
-      return 'Finalized';
   }
 }

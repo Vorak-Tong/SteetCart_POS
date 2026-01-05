@@ -8,11 +8,16 @@ class ModifierDao {
   // Group Columns
   static const colGroupId = 'id';
   static const colGroupName = 'name';
+  static const colSelectionType = 'selection_type';
+  static const colPriceBehavior = 'price_behavior';
+  static const colMinSelection = 'min_selection';
+  static const colMaxSelection = 'max_selection';
 
   // Option Columns
   static const colOptionId = 'id';
   static const colOptionName = 'name';
   static const colOptionPrice = 'price';
+  static const colOptionIsDefault = 'is_default';
   static const colOptionGroupId = 'group_id'; // FK to modifier_groups
 
   // ---------------------------------------------------------------------------

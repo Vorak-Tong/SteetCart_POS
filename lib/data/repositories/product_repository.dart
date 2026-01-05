@@ -144,6 +144,7 @@ class ProductRepository {
           id: oRow[ModifierDao.colOptionId] as String,
           name: oRow[ModifierDao.colOptionName] as String,
           price: (oRow[ModifierDao.colOptionPrice] as num?)?.toDouble(),
+          isDefault: (oRow[ModifierDao.colOptionIsDefault] as int? ?? 0) == 1,
         );
       }).toList();
 
@@ -151,6 +152,12 @@ class ProductRepository {
         ModifierGroup(
           id: groupId,
           name: gRow[ModifierDao.colGroupName] as String,
+          selectionType: ModifierSelectionType
+              .values[gRow[ModifierDao.colSelectionType] as int? ?? 0],
+          priceBehavior: ModifierPriceBehavior
+              .values[gRow[ModifierDao.colPriceBehavior] as int? ?? 1],
+          minSelection: gRow[ModifierDao.colMinSelection] as int? ?? 0,
+          maxSelection: gRow[ModifierDao.colMaxSelection] as int? ?? 1,
           modifierOptions: options,
         ),
       );

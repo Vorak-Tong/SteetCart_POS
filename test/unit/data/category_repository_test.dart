@@ -11,7 +11,7 @@ void main() {
     final repo = CategoryRepository();
 
     // 1. Create
-    final category = Category(id: const Uuid().v4(), name: 'Snacks', isActive: true);
+    final category = Category(id: const Uuid().v4(), name: 'Snacks');
     await repo.saveCategory(category);
 
     // 2. Read
@@ -21,12 +21,11 @@ void main() {
 
     // 3. Update (assuming saveCategory handles upsert or we have updateCategory)
     // If your repo uses saveCategory for both, we test that.
-    final updatedCategory = Category(id: category.id, name: 'Super Snacks', isActive: false);
+    final updatedCategory = Category(id: category.id, name: 'Super Snacks');
     await repo.saveCategory(updatedCategory);
     
     final fetchedUpdated = (await repo.getCategories()).first;
     expect(fetchedUpdated.name, 'Super Snacks');
-    expect(fetchedUpdated.isActive, false);
 
     // 4. Delete
     await repo.deleteCategory(category.id);

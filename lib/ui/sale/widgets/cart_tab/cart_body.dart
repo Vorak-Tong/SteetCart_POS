@@ -54,9 +54,12 @@ class CartBody extends StatelessWidget {
                     item: entry.$2,
                     onDecrement: entry.$2.quantity <= 1
                         ? null
-                        : () => viewModel.decrementItemQuantity(entry.$2.id),
-                    onIncrement: () =>
-                        viewModel.incrementItemQuantity(entry.$2.id),
+                        : () {
+                            viewModel.decrementItemQuantity(entry.$2.id);
+                          },
+                    onIncrement: () {
+                      viewModel.incrementItemQuantity(entry.$2.id);
+                    },
                   ),
                   if (entry.$1 != viewModel.items.length - 1)
                     const Divider(height: 1, thickness: 1),

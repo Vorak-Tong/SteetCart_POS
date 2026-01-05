@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' hide Category;
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
 

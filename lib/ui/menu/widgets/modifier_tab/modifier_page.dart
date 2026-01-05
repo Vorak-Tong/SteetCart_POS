@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/core/widgets/add_new_button.dart';
 import 'package:street_cart_pos/ui/core/widgets/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/modifier_viewmodel.dart';
+import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_detail_page.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_form_page.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_item_card.dart';
 
@@ -54,9 +55,8 @@ class _ModifierPageState extends State<ModifierPage> {
                         context,
                         MaterialPageRoute(
                           builder: (context) => ModifierFormPage(
-                            isEditing: false,
-                            onSave: (name, count) {
-                              _viewModel.addModifierGroup(name, count);
+                            onSave: (group) async {
+                              await _viewModel.addModifierGroup(group);
                             },
                           ),
                         ),
@@ -130,19 +130,27 @@ class _ModifierPageState extends State<ModifierPage> {
                       child: ModifierItemCard(
                         name: modifier.name,
                         optionCount: modifier.modifierOptions.length,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ModifierDetailPage(
+                                group: modifier,
+                                onUpdate: (updated) async {
+                                  await _viewModel.updateModifierGroup(updated);
+                                },
+                              ),
+                            ),
+                          );
+                        },
                         onEdit: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ModifierFormPage(
-                                isEditing: true,
-                                initialName: modifier.name,
-                                onSave: (name, count) {
-                                  _viewModel.updateModifierGroup(
-                                    modifier,
-                                    name,
-                                    count,
-                                  );
+                                initialGroup: modifier,
+                                onSave: (updated) async {
+                                  await _viewModel.updateModifierGroup(updated);
                                 },
                               ),
                             ),

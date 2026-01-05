@@ -34,7 +34,7 @@ class CartCheckoutBar extends StatelessWidget {
     );
 
     if (confirmed == true) {
-      viewModel.clearCart();
+      await viewModel.clearCart();
       onClearPaymentInputs();
     }
   }

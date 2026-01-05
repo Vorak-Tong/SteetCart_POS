@@ -71,7 +71,8 @@ class Order {
   final DateTime timeStamp;
   OrderType orderType;
   PaymentMethod paymentType;
-  SaleStatus status;
+  CartStatus cartStatus;
+  OrderStatus? orderStatus;
 
   Payment? payment;
 
@@ -82,7 +83,8 @@ class Order {
     required this.timeStamp,
     required this.orderType,
     required this.paymentType,
-    required this.status,
+    required this.cartStatus,
+    required this.orderStatus,
     this.payment,
     this.orderProducts = const [],
   }) : id = id ?? uuid.v4();
@@ -91,22 +93,18 @@ class Order {
     return orderProducts.fold(0.0, (sum, item) => sum + item.getLineTotal());
   }
 
-  void createDraft() {
-    status = SaleStatus.draft;
-  }
-
-  void cancelDraft() {
-    status = SaleStatus.cancelled;
-  }
+  bool get isDraft => cartStatus == CartStatus.draft;
+  bool get isFinalized => cartStatus == CartStatus.finalized;
 
   void checkout() {
     if (payment != null && payment!.isValid()) {
-      status = SaleStatus.finalized;
+      cartStatus = CartStatus.finalized;
+      orderStatus ??= OrderStatus.inPrep;
     }
   }
 
-  void updateStatus(SaleStatus newStatus) {
-    status = newStatus;
+  void updateOrderStatus(OrderStatus newStatus) {
+    orderStatus = newStatus;
   }
 
   void updateOrderType(OrderType newType) {

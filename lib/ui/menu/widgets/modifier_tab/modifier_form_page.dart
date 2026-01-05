@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/domain/models/product_model.dart';
 import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
 
 class ModifierFormPage extends StatefulWidget {
-  const ModifierFormPage({
-    super.key,
-    required this.isEditing,
-    required this.onSave,
-    this.initialName,
-  });
+  const ModifierFormPage({super.key, required this.onSave, this.initialGroup});
 
-  final bool isEditing;
-  final void Function(String name, int optionCount) onSave;
-  final String? initialName;
+  final Future<void> Function(ModifierGroup group) onSave;
+  final ModifierGroup? initialGroup;
+
+  bool get isEditing => initialGroup != null;
 
   @override
   State<ModifierFormPage> createState() => _ModifierFormPageState();
@@ -24,6 +21,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
   int _defaultSelectionIndex = -1; // -1 represents 'None'
 
   final List<_ModifierOptionController> _optionControllers = [];
+  bool _saving = false;
 
   static const _maxOptions = 10;
   static const _priceBehaviorPriceChange = 'Price Change';
@@ -36,11 +34,39 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
   void initState() {
     super.initState();
     if (widget.isEditing) {
-      // Mock data for editing
-      _groupNameController.text = widget.initialName ?? "";
-      _selectionType = "Single Selection";
-      _priceBehavior = _priceBehaviorPriceChange;
-      _addOption(); // Add mock option
+      final group = widget.initialGroup!;
+      _groupNameController.text = group.name;
+      _selectionType = group.selectionType == ModifierSelectionType.multi
+          ? 'Multi Selection'
+          : 'Single Selection';
+      _priceBehavior = group.priceBehavior == ModifierPriceBehavior.none
+          ? _priceBehaviorNoPriceChange
+          : _priceBehaviorPriceChange;
+
+      if (group.modifierOptions.isEmpty) {
+        _addOption();
+      } else {
+        for (final option in group.modifierOptions) {
+          _optionControllers.add(
+            _ModifierOptionController(
+              id: option.id,
+              labelText: option.name,
+              priceText: option.price?.toString() ?? '',
+            ),
+          );
+        }
+
+        final defaultIndex = group.modifierOptions.indexWhere(
+          (o) => o.isDefault,
+        );
+        _defaultSelectionIndex = defaultIndex >= 0 ? defaultIndex : -1;
+
+        if (_priceBehavior == _priceBehaviorNoPriceChange) {
+          for (final c in _optionControllers) {
+            c.price.clear();
+          }
+        }
+      }
     } else {
       _selectionType = "Single Selection";
       _priceBehavior = _priceBehaviorPriceChange;
@@ -61,7 +87,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
   void _addOption() {
     if (!_canAddOption) return;
     setState(() {
-      _optionControllers.add(_ModifierOptionController());
+      _optionControllers.add(_ModifierOptionController(id: uuid.v4()));
     });
   }
 
@@ -77,6 +103,18 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
         _defaultSelectionIndex--;
       }
     });
+  }
+
+  ModifierSelectionType _selectionTypeValue() {
+    return _selectionType == 'Multi Selection'
+        ? ModifierSelectionType.multi
+        : ModifierSelectionType.single;
+  }
+
+  ModifierPriceBehavior _priceBehaviorValue() {
+    return _priceBehavior == _priceBehaviorNoPriceChange
+        ? ModifierPriceBehavior.none
+        : ModifierPriceBehavior.fixed;
   }
 
   @override
@@ -393,15 +431,87 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
               width: 357,
               height: 44,
               child: FilledButton(
-                onPressed: () {
-                  if (_groupNameController.text.trim().isNotEmpty) {
-                    widget.onSave(
-                      _groupNameController.text.trim(),
-                      _optionControllers.length,
-                    );
-                    Navigator.pop(context);
-                  }
-                },
+                onPressed: _saving
+                    ? null
+                    : () async {
+                        final name = _groupNameController.text.trim();
+                        if (name.isEmpty) {
+                          return;
+                        }
+
+                        final options = <ModifierOptions>[];
+                        for (final controller in _optionControllers) {
+                          final label = controller.label.text.trim();
+                          if (label.isEmpty) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Option label cannot be empty.'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          double? price;
+                          if (_hasPriceChange) {
+                            final raw = controller.price.text.trim();
+                            if (raw.isEmpty) {
+                              price = 0.0;
+                            } else {
+                              final parsed = double.tryParse(raw);
+                              if (parsed == null) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Invalid option price.'),
+                                  ),
+                                );
+                                return;
+                              }
+                              price = parsed;
+                            }
+                          }
+
+                          options.add(
+                            ModifierOptions(
+                              id: controller.id,
+                              name: label,
+                              price: _hasPriceChange ? price : null,
+                              isDefault:
+                                  _defaultSelectionIndex == options.length,
+                            ),
+                          );
+                        }
+
+                        final selectionType = _selectionTypeValue();
+                        final group = ModifierGroup(
+                          id: widget.initialGroup?.id ?? uuid.v4(),
+                          name: name,
+                          selectionType: selectionType,
+                          priceBehavior: _priceBehaviorValue(),
+                          minSelection: 0,
+                          maxSelection:
+                              selectionType == ModifierSelectionType.single
+                              ? 1
+                              : 0,
+                          modifierOptions: options,
+                        );
+
+                        setState(() => _saving = true);
+                        try {
+                          await widget.onSave(group);
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                          }
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to save: $e')),
+                          );
+                        } finally {
+                          if (mounted) setState(() => _saving = false);
+                        }
+                      },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFF5EAF41),
                   shape: RoundedRectangleBorder(
@@ -409,7 +519,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                   ),
                 ),
                 child: Text(
-                  widget.isEditing ? 'Save' : 'Create Item',
+                  widget.isEditing ? 'Save' : 'Create',
                   style: const TextStyle(fontSize: 16),
                 ),
               ),
@@ -423,6 +533,20 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
 }
 
 class _ModifierOptionController {
+  _ModifierOptionController({
+    required this.id,
+    String? labelText,
+    String? priceText,
+  }) {
+    if (labelText != null) {
+      label.text = labelText;
+    }
+    if (priceText != null) {
+      price.text = priceText;
+    }
+  }
+
+  final String id;
   final label = TextEditingController();
   final price = TextEditingController();
 

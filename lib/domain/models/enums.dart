@@ -1,19 +1,7 @@
-enum PaymentMethod {
-  cash,
-  KHQR 
-}
+enum PaymentMethod { cash, KHQR }
 
-enum SaleStatus {
-  draft,
-  finalized,
-  inPrep,
-  ready,
-  served,
-  cancelled
-}
+enum CartStatus { draft, finalized }
 
-enum OrderType {
-  dineIn, 
-  takeAway, 
-  delivery
-}
+enum OrderStatus { inPrep, ready, served, cancel }
+
+enum OrderType { dineIn, takeAway, delivery }

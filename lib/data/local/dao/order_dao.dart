@@ -9,7 +9,8 @@ class OrderDao {
   static const colTimeStamp = 'timestamp';
   static const colOrderType = 'order_type';
   static const colPaymentType = 'payment_type';
-  static const colStatus = 'status';
+  static const colCartStatus = 'cart_status';
+  static const colOrderStatus = 'order_status';
 
   Future<List<Map<String, Object?>>> getAll() async {
     final db = await AppDatabase.instance();
@@ -49,10 +50,6 @@ class OrderDao {
 
   Future<int> delete(String id, {Transaction? txn}) async {
     final DatabaseExecutor db = txn ?? await AppDatabase.instance();
-    return await db.delete(
-      tableName,
-      where: '$colId = ?',
-      whereArgs: [id],
-    );
+    return await db.delete(tableName, where: '$colId = ?', whereArgs: [id]);
   }
 }

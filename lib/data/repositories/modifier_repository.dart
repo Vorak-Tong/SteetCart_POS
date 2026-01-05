@@ -18,6 +18,7 @@ class ModifierRepository {
           id: optRow[ModifierDao.colOptionId] as String,
           name: optRow[ModifierDao.colOptionName] as String,
           price: (optRow[ModifierDao.colOptionPrice] as num?)?.toDouble(),
+          isDefault: (optRow[ModifierDao.colOptionIsDefault] as int? ?? 0) == 1,
         );
       }).toList();
 
@@ -25,6 +26,12 @@ class ModifierRepository {
         ModifierGroup(
           id: groupId,
           name: row[ModifierDao.colGroupName] as String,
+          selectionType: ModifierSelectionType
+              .values[row[ModifierDao.colSelectionType] as int? ?? 0],
+          priceBehavior: ModifierPriceBehavior
+              .values[row[ModifierDao.colPriceBehavior] as int? ?? 1],
+          minSelection: row[ModifierDao.colMinSelection] as int? ?? 0,
+          maxSelection: row[ModifierDao.colMaxSelection] as int? ?? 1,
           modifierOptions: options,
         ),
       );
@@ -41,6 +48,10 @@ class ModifierRepository {
       await _modifierDao.insertGroup({
         ModifierDao.colGroupId: group.id,
         ModifierDao.colGroupName: group.name,
+        ModifierDao.colSelectionType: group.selectionType.index,
+        ModifierDao.colPriceBehavior: group.priceBehavior.index,
+        ModifierDao.colMinSelection: group.minSelection,
+        ModifierDao.colMaxSelection: group.maxSelection,
       }, txn: txn);
 
       await _modifierDao.deleteOptionsByGroupId(group.id, txn: txn);
@@ -51,6 +62,7 @@ class ModifierRepository {
           ModifierDao.colOptionId: option.id,
           ModifierDao.colOptionName: option.name,
           ModifierDao.colOptionPrice: option.price,
+          ModifierDao.colOptionIsDefault: option.isDefault ? 1 : 0,
           ModifierDao.colOptionGroupId: group.id,
         }, txn: txn);
       }

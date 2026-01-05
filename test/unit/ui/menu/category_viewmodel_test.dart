@@ -31,21 +31,19 @@ void main() {
   });
 
   test('addCategory adds a new category', () async {
-    await viewModel.addCategory('Juice', true);
+    await viewModel.addCategory('Juice');
     
     expect(viewModel.categories.length, 5);
     expect(viewModel.categories.last.name, 'Juice');
-    expect(viewModel.categories.last.isActive, isTrue);
   });
 
   test('updateCategory modifies existing category', () async {
     final categoryToUpdate = viewModel.categories.first; // Coffee
     
-    await viewModel.updateCategory(categoryToUpdate, 'Premium Coffee', false);
+    await viewModel.updateCategory(categoryToUpdate, 'Premium Coffee');
     
     final updated = viewModel.categories.firstWhere((c) => c.id == categoryToUpdate.id);
     expect(updated.name, 'Premium Coffee');
-    expect(updated.isActive, isFalse);
   });
 
   test('deleteCategory removes category', () async {

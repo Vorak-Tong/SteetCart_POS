@@ -8,34 +8,34 @@ class OrderStatusFilterBar extends StatelessWidget {
     required this.onChanged,
   });
 
-  final SaleStatus value;
-  final ValueChanged<SaleStatus> onChanged;
+  final OrderStatus value;
+  final ValueChanged<OrderStatus> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return SegmentedButton<SaleStatus>(
+    return SegmentedButton<OrderStatus>(
       showSelectedIcon: false,
       segments: const [
         ButtonSegment(
-          value: SaleStatus.inPrep,
+          value: OrderStatus.inPrep,
           label: _IconBelowText(
             text: 'In prep',
             icon: Icons.local_fire_department_outlined,
           ),
         ),
         ButtonSegment(
-          value: SaleStatus.ready,
+          value: OrderStatus.ready,
           label: _IconBelowText(
             text: 'Ready',
             icon: Icons.check_circle_outline,
           ),
         ),
         ButtonSegment(
-          value: SaleStatus.served,
+          value: OrderStatus.served,
           label: _IconBelowText(text: 'Served', icon: Icons.done_all),
         ),
         ButtonSegment(
-          value: SaleStatus.cancelled,
+          value: OrderStatus.cancel,
           label: _IconBelowText(text: 'Cancelled', icon: Icons.cancel_outlined),
         ),
       ],

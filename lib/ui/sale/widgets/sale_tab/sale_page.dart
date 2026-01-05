@@ -35,6 +35,7 @@ class _SalePageState extends State<SalePage> {
                 query: _viewModel.searchQuery,
                 selectedCategoryId: _viewModel.selectedCategoryId,
                 allCategoryId: SaleViewModel.allCategoryId,
+                uncategorizedCategoryId: SaleViewModel.uncategorizedCategoryId,
                 onQueryChanged: _viewModel.setSearchQuery,
               ),
               const SizedBox(height: 12),
@@ -43,15 +44,20 @@ class _SalePageState extends State<SalePage> {
                 selectedCategoryId: _viewModel.selectedCategoryId,
                 allCategoryId: SaleViewModel.allCategoryId,
                 onCategorySelected: _viewModel.setSelectedCategoryId,
+                trailingChips: [
+                  if (_viewModel.hasUncategorizedProducts)
+                    const CategoryChipItem(
+                      id: SaleViewModel.uncategorizedCategoryId,
+                      label: 'Uncategorized',
+                    ),
+                ],
               ),
               const SizedBox(height: 12),
               Expanded(
                 child: ProductGrid(
                   products: _viewModel.filteredProducts,
-                  onProductTap: (product) => showProductSelectionSheet(
-                    context,
-                    product: product,
-                  ),
+                  onProductTap: (product) =>
+                      showProductSelectionSheet(context, product: product),
                 ),
               ),
             ],

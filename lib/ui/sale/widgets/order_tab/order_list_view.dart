@@ -7,15 +7,17 @@ class OrderListView extends StatelessWidget {
   const OrderListView({
     super.key,
     required this.orders,
+    required this.orderNumberById,
     required this.isExpanded,
     required this.onToggleExpanded,
     required this.onUpdateStatus,
   });
 
   final List<Order> orders;
+  final Map<String, int> orderNumberById;
   final bool Function(String orderId) isExpanded;
   final void Function(String orderId) onToggleExpanded;
-  final void Function(String orderId, SaleStatus status) onUpdateStatus;
+  final void Function(String orderId, OrderStatus status) onUpdateStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +33,7 @@ class OrderListView extends StatelessWidget {
         final order = orders[index];
         return OrderListTile(
           order: order,
+          displayNumber: orderNumberById[order.id],
           expanded: isExpanded(order.id),
           onToggleExpanded: () => onToggleExpanded(order.id),
           onUpdateStatus: (status) => onUpdateStatus(order.id, status),

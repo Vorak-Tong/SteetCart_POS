@@ -471,37 +471,50 @@ class _ProductFormPageState extends State<ProductFormPage> {
                           .where((m) => !_selectedModifiers.contains(m))
                           .toList();
 
-                      return Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Text(
-                              'Select Modifier Group',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            if (unselectedModifiers.isEmpty)
-                              const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: Text('No more modifiers available.'),
-                              )
-                            else
-                              ...unselectedModifiers.map(
-                                (modifier) => ListTile(
-                                  title: Text(modifier.name),
-                                  onTap: () {
-                                    setState(
-                                      () => _selectedModifiers.add(modifier),
-                                    );
-                                    Navigator.pop(context);
-                                  },
+                      return SafeArea(
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Center(
+                                  child: Text(
+                                    'Select Modifier Group',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                          ],
+                                const SizedBox(height: 16),
+                                if (unselectedModifiers.isEmpty)
+                                  const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: Center(
+                                      child: Text(
+                                        'No more modifiers available.',
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  ...unselectedModifiers.map(
+                                    (modifier) => ListTile(
+                                      title: Text(modifier.name),
+                                      onTap: () {
+                                        setState(
+                                          () =>
+                                              _selectedModifiers.add(modifier),
+                                        );
+                                        Navigator.pop(context);
+                                      },
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
                       );
                     },
