@@ -11,30 +11,23 @@ class MenuItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
+    return SizedBox(
       width: double.infinity,
       height: 95,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
+      child: Card(
+        color: colorScheme.surface,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(10),
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: Row(
               children: [
-                // First Section
                 Expanded(
                   child: SizedBox(
                     height: 75,
@@ -42,70 +35,74 @@ class MenuItemCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // Title
                         Text(
                           product.name,
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        // Modifiers
                         Text(
                           product.modifierGroups.isNotEmpty
                               ? product.modifierGroups
                                     .map((g) => g.name)
                                     .join(', ')
                               : 'No Modifiers',
-                          style: const TextStyle(
-                            color: Color(0xFFCBCBCB),
-                            fontSize: 10,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        // Category Chip
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            product.category?.name ?? 'Uncategorized',
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontSize: 10,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    product.category?.name ?? 'Uncategorized',
+                                    style: textTheme.labelSmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.visible,
+                                    softWrap: false,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        // Base Price
-                        Text(
-                          'Base Price: ${formatUsd(product.basePrice)}',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 10,
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              formatUsd(product.basePrice),
+                              style: textTheme.titleSmall?.copyWith(
+                                color: colorScheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                // Second Section
                 SizedBox(
                   width: 60,
                   height: 60,
                   child: ProductImage(
                     imagePath: product.imagePath,
-                    borderRadius: 8,
-                    placeholderColor: const Color(0xFFCBCBCB),
+                    borderRadius: 12,
                     showPlaceholderLabel: false,
                     placeholderIconSize: 24,
                   ),

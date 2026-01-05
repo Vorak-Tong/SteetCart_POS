@@ -1,6 +1,7 @@
 import '../local/app_database.dart';
 import '../local/dao/modifier_dao.dart';
 import '../../domain/models/product_model.dart';
+import '../../domain/validation/field_limits.dart';
 
 class ModifierRepository {
   final _modifierDao = ModifierDao();
@@ -41,13 +42,31 @@ class ModifierRepository {
   }
 
   Future<void> saveModifierGroup(ModifierGroup group) async {
+    final groupName = group.name.trim();
+    if (groupName.isEmpty) {
+      throw ArgumentError('Modifier group name cannot be empty.');
+    }
+    if (groupName.length > FieldLimits.modifierGroupNameMax) {
+      throw ArgumentError(
+        'Modifier group name must be at most ${FieldLimits.modifierGroupNameMax} characters.',
+      );
+    }
+    if (group.modifierOptions.isEmpty) {
+      throw ArgumentError('Modifier group must have at least one option.');
+    }
+    if (group.modifierOptions.length > FieldLimits.modifierOptionMaxPerGroup) {
+      throw ArgumentError(
+        'Modifier group can have at most ${FieldLimits.modifierOptionMaxPerGroup} options.',
+      );
+    }
+
     final db = await AppDatabase.instance();
 
     await db.transaction((txn) async {
       // Insert/Replace Group (Cascade delete will remove old options if group exists)
       await _modifierDao.insertGroup({
         ModifierDao.colGroupId: group.id,
-        ModifierDao.colGroupName: group.name,
+        ModifierDao.colGroupName: groupName,
         ModifierDao.colSelectionType: group.selectionType.index,
         ModifierDao.colPriceBehavior: group.priceBehavior.index,
         ModifierDao.colMinSelection: group.minSelection,
@@ -58,10 +77,26 @@ class ModifierRepository {
 
       // Insert Options
       for (final option in group.modifierOptions) {
+        final optionName = option.name.trim();
+        if (optionName.isEmpty) {
+          throw ArgumentError('Modifier option name cannot be empty.');
+        }
+        if (optionName.length > FieldLimits.modifierOptionNameMax) {
+          throw ArgumentError(
+            'Modifier option name must be at most ${FieldLimits.modifierOptionNameMax} characters.',
+          );
+        }
+        final price = group.priceBehavior == ModifierPriceBehavior.none
+            ? null
+            : (option.price ?? 0.0);
+        if (price != null && price < 0) {
+          throw ArgumentError('Modifier option price cannot be negative.');
+        }
+
         await _modifierDao.insertOption({
           ModifierDao.colOptionId: option.id,
-          ModifierDao.colOptionName: option.name,
-          ModifierDao.colOptionPrice: option.price,
+          ModifierDao.colOptionName: optionName,
+          ModifierDao.colOptionPrice: price,
           ModifierDao.colOptionIsDefault: option.isDefault ? 1 : 0,
           ModifierDao.colOptionGroupId: group.id,
         }, txn: txn);

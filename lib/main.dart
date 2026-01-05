@@ -5,6 +5,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
 import 'package:street_cart_pos/routing/app_router.dart';
 import 'package:street_cart_pos/ui/core/theme/app_theme.dart';
+import 'package:street_cart_pos/ui/core/theme/theme_mode_state.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 
 Future<void> main() async {
@@ -35,14 +36,45 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  double _deviceTextScaleFactor(double width) {
+    // Scale down on smaller screens to reduce truncation, but keep a floor so
+    // text doesn't become too small.
+    const baseWidth = 411.0; // Pixel 2-ish baseline
+    return (width / baseWidth).clamp(0.85, 1.0);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      title: 'Street Cart POS',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
-      routerConfig: appRouter,
+    return ValueListenableBuilder(
+      valueListenable: appThemeMode,
+      builder: (context, themeMode, _) {
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'Street Cart POS',
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: themeMode,
+          routerConfig: appRouter,
+          builder: (context, child) {
+            final mediaQuery = MediaQuery.of(context);
+            final systemScale = mediaQuery.textScaleFactor;
+            final deviceScale = _deviceTextScaleFactor(mediaQuery.size.width);
+
+            // Respect accessibility: only scale down when user hasn't increased
+            // system text scaling.
+            final effectiveScale = systemScale <= 1.0
+                ? systemScale * deviceScale
+                : systemScale;
+
+            return MediaQuery(
+              data: mediaQuery.copyWith(
+                textScaler: TextScaler.linear(effectiveScale),
+              ),
+              child: child ?? const SizedBox.shrink(),
+            );
+          },
+        );
+      },
     );
   }
 }

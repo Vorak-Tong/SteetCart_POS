@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/validation/field_limits.dart';
 import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
 
 class ModifierFormPage extends StatefulWidget {
@@ -151,12 +152,14 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
             const SizedBox(height: 8),
             TextField(
               controller: _groupNameController,
+              maxLength: FieldLimits.modifierGroupNameMax,
               decoration: InputDecoration(
                 hintText: 'e.g. Size',
                 hintStyle: const TextStyle(
                   fontSize: 14,
                   color: Color(0xFFCBCBCB),
                 ),
+                counterText: '',
                 filled: true,
                 fillColor: const Color(0xFFF7F7F7),
                 border: OutlineInputBorder(
@@ -321,12 +324,14 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                         height: 44,
                         child: TextField(
                           controller: _optionControllers[index].label,
+                          maxLength: FieldLimits.modifierOptionNameMax,
                           decoration: InputDecoration(
                             hintText: 'Option Label',
                             hintStyle: const TextStyle(
                               fontSize: 14,
                               color: Color(0xFFCBCBCB),
                             ),
+                            counterText: '',
                             filled: true,
                             fillColor: const Color(0xFFF7F7F7),
                             border: OutlineInputBorder(
