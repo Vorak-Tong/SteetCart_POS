@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
 
+class CategoryChipItem {
+  const CategoryChipItem({required this.id, required this.label});
+
+  final String id;
+  final String label;
+}
+
 class CategoryFilterChips extends StatelessWidget {
   const CategoryFilterChips({
     super.key,
@@ -10,6 +17,7 @@ class CategoryFilterChips extends StatelessWidget {
     this.allCategoryId = '__all__',
     this.allLabel = 'All',
     this.height = 44,
+    this.trailingChips = const [],
   });
 
   final List<Category> categories;
@@ -19,28 +27,32 @@ class CategoryFilterChips extends StatelessWidget {
   final String allCategoryId;
   final String allLabel;
   final double height;
+  final List<CategoryChipItem> trailingChips;
 
   @override
   Widget build(BuildContext context) {
+    final items = <CategoryChipItem>[
+      CategoryChipItem(id: allCategoryId, label: allLabel),
+      ...categories.map((c) => CategoryChipItem(id: c.id, label: c.name)),
+      ...trailingChips,
+    ];
+
     return SizedBox(
       height: height,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: 1 + categories.length,
+        itemCount: items.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
-          final isAll = index == 0;
-          final id = isAll ? allCategoryId : categories[index - 1].id;
-          final label = isAll ? allLabel : categories[index - 1].name;
+          final item = items[index];
 
           return ChoiceChip(
-            label: Text(label),
-            selected: selectedCategoryId == id,
-            onSelected: (_) => onCategorySelected(id),
+            label: Text(item.label),
+            selected: selectedCategoryId == item.id,
+            onSelected: (_) => onCategorySelected(item.id),
           );
         },
       ),
     );
   }
 }
-

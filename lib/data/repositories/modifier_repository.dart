@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import '../local/app_database.dart';
 import '../local/dao/modifier_dao.dart';
 import '../../domain/models/product_model.dart';
@@ -22,11 +21,13 @@ class ModifierRepository {
         );
       }).toList();
 
-      groups.add(ModifierGroup(
-        id: groupId,
-        name: row[ModifierDao.colGroupName] as String,
-        modifierOptions: options,
-      ));
+      groups.add(
+        ModifierGroup(
+          id: groupId,
+          name: row[ModifierDao.colGroupName] as String,
+          modifierOptions: options,
+        ),
+      );
     }
 
     return groups;
@@ -40,8 +41,9 @@ class ModifierRepository {
       await _modifierDao.insertGroup({
         ModifierDao.colGroupId: group.id,
         ModifierDao.colGroupName: group.name,
-        ModifierDao.colGroupProductId: null, // Null indicates a Global Modifier
       }, txn: txn);
+
+      await _modifierDao.deleteOptionsByGroupId(group.id, txn: txn);
 
       // Insert Options
       for (final option in group.modifierOptions) {

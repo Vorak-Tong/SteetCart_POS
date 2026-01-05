@@ -25,6 +25,13 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
 
   final List<_ModifierOptionController> _optionControllers = [];
 
+  static const _maxOptions = 10;
+  static const _priceBehaviorPriceChange = 'Price Change';
+  static const _priceBehaviorNoPriceChange = 'No Price Change';
+
+  bool get _canAddOption => _optionControllers.length < _maxOptions;
+  bool get _hasPriceChange => _priceBehavior == _priceBehaviorPriceChange;
+
   @override
   void initState() {
     super.initState();
@@ -32,9 +39,11 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
       // Mock data for editing
       _groupNameController.text = widget.initialName ?? "";
       _selectionType = "Single Selection";
-      _priceBehavior = "No Price Change";
+      _priceBehavior = _priceBehaviorPriceChange;
       _addOption(); // Add mock option
     } else {
+      _selectionType = "Single Selection";
+      _priceBehavior = _priceBehaviorPriceChange;
       // Start with one empty option for convenience
       _addOption();
     }
@@ -50,6 +59,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
   }
 
   void _addOption() {
+    if (!_canAddOption) return;
     setState(() {
       _optionControllers.add(_ModifierOptionController());
     });
@@ -59,7 +69,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
     setState(() {
       _optionControllers[index].dispose();
       _optionControllers.removeAt(index);
-      
+
       // Adjust default selection index
       if (_defaultSelectionIndex == index) {
         _defaultSelectionIndex = -1;
@@ -105,7 +115,10 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
               controller: _groupNameController,
               decoration: InputDecoration(
                 hintText: 'e.g. Size',
-                hintStyle: const TextStyle(fontSize: 14, color: Color(0xFFCBCBCB)),
+                hintStyle: const TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFFCBCBCB),
+                ),
                 filled: true,
                 fillColor: const Color(0xFFF7F7F7),
                 border: OutlineInputBorder(
@@ -145,15 +158,24 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                 ),
                 items: const [
                   DropdownMenuItem(
-                    value: 'Fixed (Sized based)',
-                    child: Text('Fixed (Sized based)'),
+                    value: _priceBehaviorPriceChange,
+                    child: Text(_priceBehaviorPriceChange),
                   ),
                   DropdownMenuItem(
-                    value: 'No Price Change',
-                    child: Text('No Price Change'),
+                    value: _priceBehaviorNoPriceChange,
+                    child: Text(_priceBehaviorNoPriceChange),
                   ),
                 ],
-                onChanged: (val) => setState(() => _priceBehavior = val),
+                onChanged: (val) {
+                  setState(() {
+                    _priceBehavior = val;
+                    if (!_hasPriceChange) {
+                      for (final c in _optionControllers) {
+                        c.price.clear();
+                      }
+                    }
+                  });
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -231,7 +253,8 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                   value: -1,
                   groupValue: _defaultSelectionIndex,
                   activeColor: const Color(0xFF5EAF41),
-                  onChanged: (val) => setState(() => _defaultSelectionIndex = val!),
+                  onChanged: (val) =>
+                      setState(() => _defaultSelectionIndex = val!),
                 ),
               ],
             ),
@@ -255,52 +278,66 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                       ),
                     ),
                     // Option Label
-                    SizedBox(
-                      width: 199,
-                      height: 44,
-                      child: TextField(
-                        controller: _optionControllers[index].label,
-                        decoration: InputDecoration(
-                          hintText: 'Option Label',
-                          hintStyle: const TextStyle(fontSize: 14, color: Color(0xFFCBCBCB)),
-                          filled: true,
-                          fillColor: const Color(0xFFF7F7F7),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
+                    Expanded(
+                      child: SizedBox(
+                        height: 44,
+                        child: TextField(
+                          controller: _optionControllers[index].label,
+                          decoration: InputDecoration(
+                            hintText: 'Option Label',
+                            hintStyle: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFFCBCBCB),
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF7F7F7),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                         ),
                       ),
                     ),
+                    if (_hasPriceChange) ...[
+                      const SizedBox(width: 8),
+                      // Price Field
+                      SizedBox(
+                        width: 85,
+                        height: 44,
+                        child: TextField(
+                          controller: _optionControllers[index].price,
+                          decoration: InputDecoration(
+                            hintText: '+ \$ 0.00',
+                            hintStyle: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFFCBCBCB),
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF7F7F7),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
                     const SizedBox(width: 8),
-                    // Price Field
-                    SizedBox(
-                      width: 85,
-                      height: 44,
-                      child: TextField(
-                        controller: _optionControllers[index].price,
-                        decoration: InputDecoration(
-                          hintText: '+ \$ 0.00',
-                          hintStyle: const TextStyle(fontSize: 12, color: Color(0xFFCBCBCB)),
-                          filled: true,
-                          fillColor: const Color(0xFFF7F7F7),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                    const Spacer(),
                     // Default Radio
                     Radio<int>(
                       value: index,
                       groupValue: _defaultSelectionIndex,
                       activeColor: const Color(0xFF5EAF41),
-                      onChanged: (val) => setState(() => _defaultSelectionIndex = val!),
+                      onChanged: (val) =>
+                          setState(() => _defaultSelectionIndex = val!),
                     ),
                   ],
                 );
@@ -318,26 +355,37 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                 borderRadius: 8,
               ),
               child: InkWell(
-                onTap: _addOption,
+                onTap: _canAddOption ? _addOption : null,
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
                   width: 357,
                   height: 44,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFECEBEB),
+                    color: _canAddOption
+                        ? const Color(0xFFECEBEB)
+                        : const Color(0xFFF3F3F3),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Text(
+                  child: Text(
                     '+ Add Another Option',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF393838),
+                      color: _canAddOption
+                          ? const Color(0xFF393838)
+                          : const Color(0xFF9E9E9E),
                     ),
                   ),
                 ),
               ),
             ),
+            if (!_canAddOption) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'Maximum 10 options per modifier group.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
+              ),
+            ],
             const SizedBox(height: 40),
 
             // Create/Save Button

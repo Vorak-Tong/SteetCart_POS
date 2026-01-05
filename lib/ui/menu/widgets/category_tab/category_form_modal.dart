@@ -4,15 +4,13 @@ class CategoryFormModal extends StatefulWidget {
   const CategoryFormModal({
     super.key,
     this.categoryName,
-    this.isActive = true,
     required this.isEditing,
     required this.onSave,
   });
 
   final String? categoryName;
-  final bool isActive;
   final bool isEditing;
-  final void Function(String name, bool isActive) onSave;
+  final void Function(String name) onSave;
 
   @override
   State<CategoryFormModal> createState() => _CategoryFormModalState();
@@ -20,13 +18,11 @@ class CategoryFormModal extends StatefulWidget {
 
 class _CategoryFormModalState extends State<CategoryFormModal> {
   late TextEditingController _nameController;
-  late bool _isActive;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.categoryName);
-    _isActive = widget.isActive;
   }
 
   @override
@@ -38,7 +34,7 @@ class _CategoryFormModalState extends State<CategoryFormModal> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 314,
+      height: 250,
       width: double.infinity,
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -79,10 +75,7 @@ class _CategoryFormModalState extends State<CategoryFormModal> {
                   // Category Name Label
                   const Text(
                     'Category Name',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF393838),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF393838)),
                   ),
                   const SizedBox(height: 8),
                   // Input Field
@@ -108,29 +101,8 @@ class _CategoryFormModalState extends State<CategoryFormModal> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
-                  // Set Active Toggle
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Set Active',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Color(0xFF393838),
-                        ),
-                      ),
-                      Switch(
-                        value: _isActive,
-                        onChanged: (val) => setState(() => _isActive = val),
-                        activeColor: Colors.white,
-                        activeTrackColor: const Color(0xFF5EAF41),
-                      ),
-                    ],
-                  ),
-                  
                   const Spacer(),
-                  
+
                   // Save Button (Added to ensure functionality)
                   Center(
                     child: SizedBox(
@@ -139,7 +111,7 @@ class _CategoryFormModalState extends State<CategoryFormModal> {
                       child: FilledButton(
                         onPressed: () {
                           if (_nameController.text.trim().isNotEmpty) {
-                            widget.onSave(_nameController.text.trim(), _isActive);
+                            widget.onSave(_nameController.text.trim());
                             Navigator.pop(context);
                           }
                         },

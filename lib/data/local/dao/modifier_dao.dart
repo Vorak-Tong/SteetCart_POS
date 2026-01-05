@@ -8,7 +8,6 @@ class ModifierDao {
   // Group Columns
   static const colGroupId = 'id';
   static const colGroupName = 'name';
-  static const colGroupProductId = 'product_id'; // FK to products
 
   // Option Columns
   static const colOptionId = 'id';
@@ -20,20 +19,27 @@ class ModifierDao {
   // Modifier Groups
   // ---------------------------------------------------------------------------
 
-  Future<List<Map<String, Object?>>> getGroupsByProductId(String productId) async {
-    final db = await AppDatabase.instance();
-    return await db.query(
-      tableGroups,
-      where: '$colGroupProductId = ?',
-      whereArgs: [productId],
-    );
-  }
-
   Future<List<Map<String, Object?>>> getGlobalGroups() async {
     final db = await AppDatabase.instance();
+    return await db.query(tableGroups);
+  }
+
+  Future<List<Map<String, Object?>>> getAllGroups() async {
+    final db = await AppDatabase.instance();
+    return await db.query(tableGroups);
+  }
+
+  Future<List<Map<String, Object?>>> getGroupsByIds(
+    List<String> groupIds, {
+    Transaction? txn,
+  }) async {
+    if (groupIds.isEmpty) return const [];
+    final DatabaseExecutor db = txn ?? await AppDatabase.instance();
+    final placeholders = List.filled(groupIds.length, '?').join(', ');
     return await db.query(
       tableGroups,
-      where: '$colGroupProductId IS NULL',
+      where: '$colGroupId IN ($placeholders)',
+      whereArgs: groupIds,
     );
   }
 
@@ -46,12 +52,12 @@ class ModifierDao {
     );
   }
 
-  Future<int> deleteGroupsByProductId(String productId, {Transaction? txn}) async {
-    final DatabaseExecutor db = txn ?? await AppDatabase.instance();
-    return await db.delete(
-      tableGroups,
-      where: '$colGroupProductId = ?',
-      whereArgs: [productId],
+  Future<int> deleteGroupsByProductId(
+    String productId, {
+    Transaction? txn,
+  }) async {
+    throw UnsupportedError(
+      'Product-specific modifier groups are no longer supported.',
     );
   }
 
@@ -68,8 +74,11 @@ class ModifierDao {
   // Modifier Options
   // ---------------------------------------------------------------------------
 
-  Future<List<Map<String, Object?>>> getOptionsByGroupId(String groupId) async {
-    final db = await AppDatabase.instance();
+  Future<List<Map<String, Object?>>> getOptionsByGroupId(
+    String groupId, {
+    Transaction? txn,
+  }) async {
+    final DatabaseExecutor db = txn ?? await AppDatabase.instance();
     return await db.query(
       tableOptions,
       where: '$colOptionGroupId = ?',
@@ -77,7 +86,10 @@ class ModifierDao {
     );
   }
 
-  Future<int> insertOption(Map<String, Object?> data, {Transaction? txn}) async {
+  Future<int> insertOption(
+    Map<String, Object?> data, {
+    Transaction? txn,
+  }) async {
     final DatabaseExecutor db = txn ?? await AppDatabase.instance();
     return await db.insert(
       tableOptions,
@@ -94,20 +106,13 @@ class ModifierDao {
       whereArgs: [groupId],
     );
   }
-  
-  // Helper to delete everything related to a product (useful for updates/deletes)
-  // Note: If Foreign Keys are set to ON DELETE CASCADE, this might happen automatically,
-  // but explicit deletion is safer if we aren't sure about the SQLite config.
-  Future<void> deleteModifiersForProduct(String productId, {Transaction? txn}) async {
-    // We need to find groups first to delete their options
-    // Or rely on CASCADE. Assuming manual for safety here:
-    final groups = await (txn != null 
-        ? txn.query(tableGroups, where: '$colGroupProductId = ?', whereArgs: [productId])
-        : getGroupsByProductId(productId));
-        
-    for (final group in groups) {
-      await deleteOptionsByGroupId(group[colGroupId] as String, txn: txn);
-    }
-    await deleteGroupsByProductId(productId, txn: txn);
+
+  Future<void> deleteModifiersForProduct(
+    String productId, {
+    Transaction? txn,
+  }) async {
+    throw UnsupportedError(
+      'Product-specific modifier groups are no longer supported.',
+    );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart' hide Category;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
-import 'package:street_cart_pos/ui/menu/widgets/modifier_page.dart';
+import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_page.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
 import '../../helpers/fake_menu_repository.dart';
 import 'package:uuid/uuid.dart';

@@ -8,6 +8,10 @@ class OrderItemDao {
   static const colId = 'id';
   static const colOrderId = 'order_id'; // Foreign Key to orders
   static const colProductId = 'product_id'; // Foreign Key to products
+  static const colProductName = 'product_name';
+  static const colUnitPrice = 'unit_price';
+  static const colProductImage = 'product_image';
+  static const colProductDescription = 'product_description';
   static const colQuantity = 'quantity';
 
   // Get items for a specific order

@@ -9,6 +9,8 @@ class ProductSearchBar extends StatefulWidget {
     required this.onQueryChanged,
     required this.selectedCategoryId,
     this.allCategoryId = '__all__',
+    this.uncategorizedCategoryId,
+    this.archivedCategoryId,
   });
 
   final List<Product> products;
@@ -17,13 +19,17 @@ class ProductSearchBar extends StatefulWidget {
 
   final String selectedCategoryId;
   final String allCategoryId;
+  final String? uncategorizedCategoryId;
+  final String? archivedCategoryId;
 
   @override
   State<ProductSearchBar> createState() => _ProductSearchBarState();
 }
 
 class _ProductSearchBarState extends State<ProductSearchBar> {
-  late final TextEditingController _controller = TextEditingController(text: widget.query);
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.query,
+  );
 
   @override
   void didUpdateWidget(covariant ProductSearchBar oldWidget) {
@@ -54,8 +60,16 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
         }
 
         return widget.products.where((product) {
-          final inCategory = widget.selectedCategoryId == widget.allCategoryId ||
-              product.category?.id == widget.selectedCategoryId;
+          final selected = widget.selectedCategoryId;
+          final inCategory =
+              selected == widget.allCategoryId ||
+              (widget.uncategorizedCategoryId != null &&
+                  selected == widget.uncategorizedCategoryId &&
+                  product.category == null) ||
+              (widget.archivedCategoryId != null &&
+                  selected == widget.archivedCategoryId &&
+                  !product.isActive) ||
+              product.category?.id == selected;
           return inCategory && product.name.toLowerCase().contains(query);
         });
       },
@@ -68,9 +82,7 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search),
             hintText: 'Search products',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             suffixIcon: widget.query.isEmpty
                 ? null
                 : IconButton(
@@ -86,4 +98,3 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
     );
   }
 }
-

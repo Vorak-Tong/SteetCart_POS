@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
+import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
+import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_form_page.dart';
 
 class ProductDetailPage extends StatelessWidget {
-  const ProductDetailPage({super.key, required this.product});
+  const ProductDetailPage({
+    super.key,
+    required this.product,
+    required this.categories,
+    required this.availableModifiers,
+    required this.onUpdate,
+  });
 
   final Product product;
+  final List<Category> categories;
+  final List<ModifierGroup> availableModifiers;
+  final Future<void> Function(Product product) onUpdate;
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +41,21 @@ class ProductDetailPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined, color: Colors.black),
-            onPressed: () {
-              // TODO: Navigate to edit
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductFormPage(
+                    isEditing: true,
+                    initialProduct: product,
+                    categories: categories,
+                    availableModifiers: availableModifiers,
+                    onSave: onUpdate,
+                  ),
+                ),
+              );
+              if (!context.mounted) return;
+              Navigator.pop(context);
             },
           ),
         ],
@@ -43,18 +67,13 @@ class ProductDetailPage extends StatelessWidget {
           children: [
             // Image
             Center(
-              child: Container(
+              child: SizedBox(
                 width: 160,
                 height: 149,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF7F7F7),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.image_outlined,
-                  size: 40,
-                  color: Color(0xFFCBCBCB),
+                child: ProductImage(
+                  imagePath: product.imagePath,
+                  borderRadius: 12,
+                  showPlaceholderLabel: false,
                 ),
               ),
             ),
@@ -65,7 +84,7 @@ class ProductDetailPage extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Description
-            _buildReadOnlyField('Description', 'Short description'),
+            _buildReadOnlyField('Description', product.description ?? ''),
             const SizedBox(height: 20),
 
             // Base Price
@@ -111,9 +130,12 @@ class ProductDetailPage extends StatelessWidget {
                           color: Colors.black,
                         ),
                       ),
-                      const Text(
-                        '3 options', // Mock count
-                        style: TextStyle(fontSize: 12, color: Colors.black),
+                      Text(
+                        '${group.modifierOptions.length} options',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black,
+                        ),
                       ),
                     ],
                   ),
