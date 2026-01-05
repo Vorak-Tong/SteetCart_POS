@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
 import 'package:street_cart_pos/ui/core/widgets/quantity_stepper.dart';
-import 'package:street_cart_pos/ui/sale/viewmodel/cart_viewmodel.dart';
+import 'package:street_cart_pos/domain/models/order_model.dart';
 
 class CartLineItemTile extends StatelessWidget {
   const CartLineItemTile({
@@ -12,7 +12,7 @@ class CartLineItemTile extends StatelessWidget {
     this.onDecrement,
   });
 
-  final CartLineItem item;
+  final OrderProduct item;
   final VoidCallback onIncrement;
   final VoidCallback? onDecrement;
 
@@ -31,7 +31,7 @@ class CartLineItemTile extends StatelessWidget {
       );
     }
 
-    final notes = item.notes?.trim();
+    final notes = item.note?.trim();
     if (notes != null && notes.isNotEmpty) {
       lines.add(Text(notes, style: theme.textTheme.bodySmall));
     }
@@ -43,6 +43,7 @@ class CartLineItemTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final subtitleLines = _buildSubtitleLines(theme);
+    final product = item.product;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 88),
@@ -53,12 +54,12 @@ class CartLineItemTile extends StatelessWidget {
             leading: SizedBox.square(
               dimension: 44,
               child: ProductImage(
-                imagePath: item.imagePath,
+                imagePath: product?.imagePath,
                 showPlaceholderLabel: false,
                 placeholderIconSize: 20,
               ),
             ),
-            title: Text(item.name),
+            title: Text(product?.name ?? 'Unknown item'),
             subtitle: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +83,7 @@ class CartLineItemTile extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerRight,
               child: Text(
-                formatUsd(item.lineTotal),
+                formatUsd(item.getLineTotal()),
                 style: theme.textTheme.labelLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),

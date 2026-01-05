@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/ui/sale/sale_tab_state.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/order_viewmodel.dart';
 import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_date_picker_button.dart';
 import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_list_view.dart';
@@ -14,8 +15,21 @@ class OrderPage extends StatefulWidget {
 class _OrderPageState extends State<OrderPage> {
   late final OrderViewModel _viewModel = OrderViewModel();
 
+  void _onTabIndexChanged() {
+    if (saleTabIndex.value == 2) {
+      _viewModel.refreshFromDb();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    saleTabIndex.addListener(_onTabIndexChanged);
+  }
+
   @override
   void dispose() {
+    saleTabIndex.removeListener(_onTabIndexChanged);
     _viewModel.dispose();
     super.dispose();
   }
@@ -67,6 +81,7 @@ class _OrderPageState extends State<OrderPage> {
               Expanded(
                 child: OrderListView(
                   orders: _viewModel.filteredOrders,
+                  orderNumberById: _viewModel.orderNumberByIdForSelectedDate,
                   isExpanded: _viewModel.isExpanded,
                   onToggleExpanded: _viewModel.toggleExpanded,
                   onUpdateStatus: (orderId, status) => _viewModel

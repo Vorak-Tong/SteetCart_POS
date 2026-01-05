@@ -125,7 +125,7 @@ class _ProductSelectionSheetState extends State<ProductSelectionSheet> {
                                             ),
                                           ),
                                           Text(
-                                            formatUsd(product.basePrice),
+                                            formatUsd(_viewModel.unitTotal),
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                                   color: colorScheme.primary,
@@ -228,9 +228,28 @@ class _ProductSelectionSheetState extends State<ProductSelectionSheet> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: FilledButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
+                            onPressed: _viewModel.addingToCart
+                                ? null
+                                : () async {
+                                    try {
+                                      await _viewModel.addToCart();
+                                      if (context.mounted) {
+                                        Navigator.of(context).pop();
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Failed to add to cart: $e',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
                             child: const Text('Add to cart'),
                           ),
                         ),

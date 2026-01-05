@@ -6,31 +6,22 @@ class ModifierItemCard extends StatelessWidget {
     required this.name,
     required this.optionCount,
     required this.onEdit,
-    required this.onDelete,
+    this.onTap,
   });
 
   final String name;
   final int optionCount;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Dismissible(
-        key: ValueKey(name),
-        direction: DismissDirection.horizontal,
-        onDismissed: (_) => onDelete(),
-        background: Container(
-          width: 362,
-          height: 63,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFEBEB),
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Container(
-          width: 362,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Ink(
           height: 63,
           decoration: BoxDecoration(
             color: Colors.white,
@@ -61,10 +52,7 @@ class ModifierItemCard extends StatelessWidget {
                     ),
                     Text(
                       '$optionCount options',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(fontSize: 10, color: Colors.black),
                     ),
                   ],
                 ),

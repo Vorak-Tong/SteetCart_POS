@@ -1,32 +1,49 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:street_cart_pos/data/repositories/order_repository.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
+import 'package:street_cart_pos/domain/models/order_model.dart';
 
 class CartViewModel extends ChangeNotifier {
-  CartViewModel() {
-    _items = _mockCartItems();
+  CartViewModel({OrderRepository? orderRepository})
+    : _orderRepository = orderRepository ?? OrderRepository() {
+    refreshFromDb();
   }
+
+  final OrderRepository _orderRepository;
 
   static const double vatRate = 0.10;
   static const int exchangeRateKhrPerUsd = 4000;
 
-  late List<CartLineItem> _items;
+  Order? _draftOrder;
+  bool _loading = false;
+  bool _checkingOut = false;
 
-  OrderType _orderType = OrderType.dineIn;
-  PaymentMethod _paymentMethod = PaymentMethod.cash;
+  OrderType _pendingOrderType = OrderType.dineIn;
+  PaymentMethod _pendingPaymentMethod = PaymentMethod.cash;
 
   double? _receivedUsd;
   int? _receivedKhr;
   String? _receivedUsdError;
   String? _receivedKhrError;
 
-  List<CartLineItem> get items => List.unmodifiable(_items);
-  OrderType get orderType => _orderType;
-  PaymentMethod get paymentMethod => _paymentMethod;
+  bool get loading => _loading;
+  bool get checkingOut => _checkingOut;
+
+  Order? get draftOrder => _draftOrder;
+  bool get hasDraftOrder => _draftOrder != null;
+
+  List<OrderProduct> get items =>
+      List.unmodifiable(_draftOrder?.orderProducts ?? const <OrderProduct>[]);
+
+  OrderType get orderType => _draftOrder?.orderType ?? _pendingOrderType;
+  PaymentMethod get paymentMethod =>
+      _draftOrder?.paymentType ?? _pendingPaymentMethod;
 
   String? get receivedUsdError => _receivedUsdError;
   String? get receivedKhrError => _receivedKhrError;
 
-  double get subtotal => _items.fold(0.0, (sum, item) => sum + item.lineTotal);
+  double get subtotal =>
+      items.fold(0.0, (sum, item) => sum + item.getLineTotal());
   int get vatPercent => (vatRate * 100).round();
   double get vat => subtotal * vatRate;
   double get grandTotalUsd => subtotal + vat;
@@ -58,22 +75,115 @@ class CartViewModel extends ChangeNotifier {
     return _receivedKhr! - grandTotalKhr;
   }
 
-  bool get canCheckout => _items.isNotEmpty && hasSufficientPayment;
+  bool get canCheckout =>
+      !_loading && !_checkingOut && items.isNotEmpty && hasSufficientPayment;
 
-  void setOrderType(OrderType type) {
-    if (_orderType == type) {
+  Future<void> refreshFromDb() async {
+    if (_loading) {
       return;
     }
-    _orderType = type;
+
+    _loading = true;
     notifyListeners();
+
+    try {
+      _draftOrder = await _orderRepository.getDraftOrder();
+
+      if (_draftOrder != null) {
+        _pendingOrderType = _draftOrder!.orderType;
+        _pendingPaymentMethod = _draftOrder!.paymentType;
+      }
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> checkout() async {
+    final order = _draftOrder;
+    if (order == null) {
+      return;
+    }
+    if (!canCheckout) {
+      return;
+    }
+
+    _checkingOut = true;
+    notifyListeners();
+
+    try {
+      final receiveUsd = _hasValidReceivedUsd ? _receivedUsd! : 0.0;
+      final receiveKhr = _hasValidReceivedKhr ? _receivedKhr! : 0;
+
+      final changeUsd = receiveUsd > 0 ? (receiveUsd - grandTotalUsd) : 0.0;
+      final changeKhr = (receiveKhr > 0)
+          ? (receiveKhr - grandTotalKhr)
+          : (changeUsd * exchangeRateKhrPerUsd).round();
+
+      final payment = Payment(
+        type: paymentMethod,
+        recieveAmountKHR: receiveKhr,
+        recieveAmountUSD: receiveUsd,
+        changeKhr: changeKhr,
+        changeUSD: changeUsd,
+      );
+
+      await _orderRepository.finalizeDraftOrder(
+        orderId: order.id,
+        orderType: order.orderType,
+        paymentType: order.paymentType,
+        payment: payment,
+      );
+
+      _draftOrder = null;
+      _receivedUsd = null;
+      _receivedKhr = null;
+      _receivedUsdError = null;
+      _receivedKhrError = null;
+    } finally {
+      _checkingOut = false;
+      notifyListeners();
+    }
+  }
+
+  void setOrderType(OrderType type) {
+    if (orderType == type) {
+      return;
+    }
+
+    final order = _draftOrder;
+    if (order == null) {
+      _pendingOrderType = type;
+      notifyListeners();
+      return;
+    }
+
+    order.orderType = type;
+    notifyListeners();
+
+    _orderRepository
+        .updateOrderMeta(order.id, orderType: type)
+        .catchError((_) => refreshFromDb());
   }
 
   void setPaymentMethod(PaymentMethod method) {
-    if (_paymentMethod == method) {
+    if (paymentMethod == method) {
       return;
     }
-    _paymentMethod = method;
+
+    final order = _draftOrder;
+    if (order == null) {
+      _pendingPaymentMethod = method;
+      notifyListeners();
+      return;
+    }
+
+    order.paymentType = method;
     notifyListeners();
+
+    _orderRepository
+        .updateOrderMeta(order.id, paymentType: method)
+        .catchError((_) => refreshFromDb());
   }
 
   void setReceivedUsd(String input) {
@@ -140,126 +250,62 @@ class CartViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void incrementItemQuantity(String id) {
-    _updateQuantity(id, delta: 1);
+  void incrementItemQuantity(String orderItemId) {
+    _updateQuantity(orderItemId, delta: 1);
   }
 
-  void decrementItemQuantity(String id) {
-    _updateQuantity(id, delta: -1);
+  void decrementItemQuantity(String orderItemId) {
+    _updateQuantity(orderItemId, delta: -1);
   }
 
-  void clearCart() {
-    if (_items.isEmpty) {
+  Future<void> clearCart() async {
+    if (!hasDraftOrder) {
       return;
     }
-    _items = const [];
+
+    await _orderRepository.deleteDraftOrder();
+    _draftOrder = null;
+
     _receivedUsd = null;
     _receivedKhr = null;
     _receivedUsdError = null;
     _receivedKhrError = null;
+
     notifyListeners();
   }
 
-  void _updateQuantity(String id, {required int delta}) {
-    final index = _items.indexWhere((x) => x.id == id);
+  void _updateQuantity(String orderItemId, {required int delta}) {
+    final order = _draftOrder;
+    if (order == null) {
+      return;
+    }
+
+    final index = order.orderProducts.indexWhere((x) => x.id == orderItemId);
     if (index == -1) {
       return;
     }
 
-    final current = _items[index];
+    final current = order.orderProducts[index];
     final nextQuantity = current.quantity + delta;
     if (nextQuantity < 1) {
       return;
     }
 
-    _items = [
-      ..._items.sublist(0, index),
-      current.copyWith(quantity: nextQuantity),
-      ..._items.sublist(index + 1),
+    order.orderProducts = [
+      ...order.orderProducts.sublist(0, index),
+      OrderProduct(
+        id: current.id,
+        quantity: nextQuantity,
+        product: current.product,
+        modifierSelections: current.modifierSelections,
+        note: current.note,
+      ),
+      ...order.orderProducts.sublist(index + 1),
     ];
     notifyListeners();
+
+    _orderRepository
+        .updateOrderItemQuantity(orderItemId, quantity: nextQuantity)
+        .catchError((_) => refreshFromDb());
   }
-}
-
-class CartLineItem {
-  const CartLineItem({
-    required this.id,
-    required this.name,
-    required this.quantity,
-    required this.unitPrice,
-    this.modifierSelections = const [],
-    this.notes,
-    this.imagePath,
-  });
-
-  final String id;
-  final String name;
-  final int quantity;
-  final double unitPrice;
-  final List<CartModifierSelection> modifierSelections;
-  final String? notes;
-  final String? imagePath;
-
-  double get lineTotal => unitPrice * quantity;
-
-  CartLineItem copyWith({
-    int? quantity,
-    double? unitPrice,
-    List<CartModifierSelection>? modifierSelections,
-    String? notes,
-    String? imagePath,
-  }) {
-    return CartLineItem(
-      id: id,
-      name: name,
-      quantity: quantity ?? this.quantity,
-      unitPrice: unitPrice ?? this.unitPrice,
-      modifierSelections: modifierSelections ?? this.modifierSelections,
-      notes: notes ?? this.notes,
-      imagePath: imagePath ?? this.imagePath,
-    );
-  }
-}
-
-class CartModifierSelection {
-  const CartModifierSelection({
-    required this.groupName,
-    required this.optionNames,
-  });
-
-  final String groupName;
-  final List<String> optionNames;
-}
-
-List<CartLineItem> _mockCartItems() {
-  return const [
-    CartLineItem(
-      id: 'line-iced-tea',
-      name: 'Iced Tea',
-      quantity: 2,
-      unitPrice: 2.25,
-      modifierSelections: [
-        CartModifierSelection(groupName: 'Ice', optionNames: ['Less ice']),
-        CartModifierSelection(
-          groupName: 'Sugar Level',
-          optionNames: ['Less sweet'],
-        ),
-      ],
-    ),
-    CartLineItem(
-      id: 'line-fries',
-      name: 'Fries',
-      quantity: 1,
-      unitPrice: 4.25,
-      modifierSelections: [
-        CartModifierSelection(groupName: 'Size', optionNames: ['L']),
-      ],
-    ),
-    CartLineItem(
-      id: 'line-chicken-rice',
-      name: 'Chicken Over Rice',
-      quantity: 1,
-      unitPrice: 10.00,
-    ),
-  ];
 }

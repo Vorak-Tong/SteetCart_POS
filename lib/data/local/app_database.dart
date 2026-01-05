@@ -7,7 +7,7 @@ class AppDatabase {
   AppDatabase._();
 
   static const _dbName = 'street_cart_pos_v3.db';
-  static const _dbVersion = 3;
+  static const _dbVersion = 13;
 
   static Database? _db;
 
@@ -58,8 +58,10 @@ class AppDatabase {
       CREATE TABLE products (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
+        description TEXT,
         base_price REAL NOT NULL,
         image TEXT,
+        is_active INTEGER NOT NULL DEFAULT 1,
         category_id TEXT,
         FOREIGN KEY (category_id) REFERENCES categories (id) ON DELETE SET NULL
       )
@@ -70,8 +72,10 @@ class AppDatabase {
       CREATE TABLE modifier_groups (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
-        product_id TEXT,
-        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
+        selection_type INTEGER NOT NULL DEFAULT 0,
+        price_behavior INTEGER NOT NULL DEFAULT 1,
+        min_selection INTEGER NOT NULL DEFAULT 0,
+        max_selection INTEGER NOT NULL DEFAULT 1
       )
     ''');
 
@@ -81,7 +85,19 @@ class AppDatabase {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         price REAL,
+        is_default INTEGER NOT NULL DEFAULT 0,
         group_id TEXT NOT NULL,
+        FOREIGN KEY (group_id) REFERENCES modifier_groups (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // 4b. Product Modifier Groups (join table)
+    await db.execute('''
+      CREATE TABLE product_modifier_groups (
+        product_id TEXT NOT NULL,
+        group_id TEXT NOT NULL,
+        PRIMARY KEY (product_id, group_id),
+        FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE,
         FOREIGN KEY (group_id) REFERENCES modifier_groups (id) ON DELETE CASCADE
       )
     ''');
@@ -91,9 +107,18 @@ class AppDatabase {
       CREATE TABLE orders (
         id TEXT PRIMARY KEY,
         timestamp INTEGER NOT NULL,
-        order_type INTEGER NOT NULL,
-        payment_type INTEGER NOT NULL,
-        status INTEGER NOT NULL
+        order_type TEXT NOT NULL CHECK (
+          order_type IN ('dineIn', 'takeAway', 'delivery')
+        ),
+        payment_type TEXT NOT NULL CHECK (
+          payment_type IN ('cash', 'KHQR')
+        ),
+        cart_status TEXT NOT NULL DEFAULT 'draft' CHECK (
+          cart_status IN ('draft', 'finalized')
+        ),
+        order_status TEXT CHECK (
+          order_status IN ('inPrep', 'ready', 'served', 'cancel')
+        )
       )
     ''');
 
@@ -103,6 +128,12 @@ class AppDatabase {
         id TEXT PRIMARY KEY,
         order_id TEXT NOT NULL,
         product_id TEXT,
+        product_name TEXT,
+        unit_price REAL,
+        product_image TEXT,
+        product_description TEXT,
+        modifier_selections TEXT,
+        note TEXT,
         quantity INTEGER NOT NULL,
         FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE,
         FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE SET NULL
@@ -138,34 +169,23 @@ class AppDatabase {
     int oldVersion,
     int newVersion,
   ) async {
-    if (oldVersion < 2) {
-      await db.execute('ALTER TABLE categories ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1');
-    }
-    if (oldVersion < 3) {
-      // Recreate modifier_groups to allow nullable product_id for Global Modifiers
-      // We drop both tables to ensure clean schema recreation
-      await db.execute('DROP TABLE IF EXISTS modifier_options');
-      await db.execute('DROP TABLE IF EXISTS modifier_groups');
+    // During development we prefer a predictable workflow over preserving existing data:
+    // any schema version bump does a full rebuild of the database.
+    await db.transaction((txn) async {
+      await txn.execute('PRAGMA foreign_keys = OFF');
+      await txn.execute('DROP TABLE IF EXISTS sale_policies');
+      await txn.execute('DROP TABLE IF EXISTS payments');
+      await txn.execute('DROP TABLE IF EXISTS order_items');
+      await txn.execute('DROP TABLE IF EXISTS orders');
+      await txn.execute('DROP TABLE IF EXISTS product_modifier_groups');
+      await txn.execute('DROP TABLE IF EXISTS modifier_options');
+      await txn.execute('DROP TABLE IF EXISTS modifier_groups');
+      await txn.execute('DROP TABLE IF EXISTS products');
+      await txn.execute('DROP TABLE IF EXISTS categories');
+      await txn.execute('PRAGMA foreign_keys = ON');
+    });
 
-      await db.execute('''
-        CREATE TABLE modifier_groups (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          product_id TEXT,
-          FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
-        )
-      ''');
-
-      await db.execute('''
-        CREATE TABLE modifier_options (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          price REAL,
-          group_id TEXT NOT NULL,
-          FOREIGN KEY (group_id) REFERENCES modifier_groups (id) ON DELETE CASCADE
-        )
-      ''');
-    }
+    await _onCreate(db, newVersion);
   }
 
   static Future<void> reset() async {

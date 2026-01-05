@@ -8,15 +8,17 @@ class OrderListTile extends StatelessWidget {
   const OrderListTile({
     super.key,
     required this.order,
+    this.displayNumber,
     required this.expanded,
     required this.onToggleExpanded,
     required this.onUpdateStatus,
   });
 
   final Order order;
+  final int? displayNumber;
   final bool expanded;
   final VoidCallback onToggleExpanded;
-  final ValueChanged<SaleStatus> onUpdateStatus;
+  final ValueChanged<OrderStatus> onUpdateStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +27,7 @@ class OrderListTile extends StatelessWidget {
       TimeOfDay.fromDateTime(order.timeStamp),
       alwaysUse24HourFormat: true,
     );
+    final status = order.orderStatus;
 
     return Card(
       elevation: 2,
@@ -37,8 +40,24 @@ class OrderListTile extends StatelessWidget {
               horizontal: 12,
               vertical: 6,
             ),
-            title: Text(_orderTitle(order.id)),
-            subtitle: Text('$time • ${_orderTypeLabel(order.orderType)}'),
+            title: Text(
+              displayNumber == null
+                  ? _fallbackOrderTitle(order.id)
+                  : 'Order $displayNumber',
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('$time • ${_orderTypeLabel(order.orderType)}'),
+                Text(
+                  'ID: ${order.id}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
             trailing: Text(
               formatUsd(order.getTotal()),
               style: theme.textTheme.titleSmall?.copyWith(
@@ -57,20 +76,22 @@ class OrderListTile extends StatelessWidget {
                   icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
                 ),
                 const Spacer(),
-                _StatusChip(status: order.status),
+                _StatusChip(status: status),
                 const SizedBox(width: 6),
                 IconButton(
                   key: ValueKey('order_edit_status_${order.id}'),
                   tooltip: 'Edit status',
-                  onPressed: () async {
-                    final next = await showOrderStatusEditSheet(
-                      context,
-                      current: order.status,
-                    );
-                    if (next != null && next != order.status) {
-                      onUpdateStatus(next);
-                    }
-                  },
+                  onPressed: status == null
+                      ? null
+                      : () async {
+                          final next = await showOrderStatusEditSheet(
+                            context,
+                            current: status,
+                          );
+                          if (next != null && next != status) {
+                            onUpdateStatus(next);
+                          }
+                        },
                   icon: const Icon(Icons.edit_outlined, size: 18),
                   visualDensity: VisualDensity.compact,
                 ),
@@ -186,7 +207,7 @@ class _OrderItems extends StatelessWidget {
   }
 }
 
-String _orderTitle(String id) {
+String _fallbackOrderTitle(String id) {
   final parts = id.split('-');
   final number = parts.isEmpty ? id : parts.last;
   return 'Order $number';
@@ -206,7 +227,7 @@ String _orderTypeLabel(OrderType type) {
 class _StatusChip extends StatelessWidget {
   const _StatusChip({required this.status});
 
-  final SaleStatus status;
+  final OrderStatus? status;
 
   @override
   Widget build(BuildContext context) {
@@ -230,27 +251,23 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-(Color, Color, String) _statusStyle(ColorScheme scheme, SaleStatus status) {
+(Color, Color, String) _statusStyle(ColorScheme scheme, OrderStatus? status) {
+  if (status == null) {
+    return (scheme.surfaceContainerHighest, scheme.onSurfaceVariant, 'Draft');
+  }
+
   switch (status) {
-    case SaleStatus.inPrep:
+    case OrderStatus.inPrep:
       return (
         scheme.secondaryContainer,
         scheme.onSecondaryContainer,
         'In prep',
       );
-    case SaleStatus.ready:
+    case OrderStatus.ready:
       return (scheme.tertiaryContainer, scheme.onTertiaryContainer, 'Ready');
-    case SaleStatus.served:
+    case OrderStatus.served:
       return (scheme.primaryContainer, scheme.onPrimaryContainer, 'Served');
-    case SaleStatus.cancelled:
+    case OrderStatus.cancel:
       return (scheme.errorContainer, scheme.onErrorContainer, 'Cancelled');
-    case SaleStatus.draft:
-      return (scheme.surfaceContainerHighest, scheme.onSurfaceVariant, 'Draft');
-    case SaleStatus.finalized:
-      return (
-        scheme.surfaceContainerHighest,
-        scheme.onSurfaceVariant,
-        'Finalized',
-      );
   }
 }

@@ -10,14 +10,8 @@ enum ModifierPriceBehavior { fixed, none }
 class Category {
   final String id;
   final String name;
-  final bool isActive;
 
-  Category({
-    String? id,
-    required this.name,
-    this.isActive = true,
-  }) : id = id ?? uuid.v4();
-  
+  Category({String? id, required this.name}) : id = id ?? uuid.v4();
 }
 
 // Modifiers
@@ -42,7 +36,7 @@ class ModifierGroup {
   final ModifierPriceBehavior priceBehavior;
   final int minSelection;
   final int maxSelection;
-  
+
   final List<ModifierOptions> modifierOptions;
 
   ModifierGroup({
@@ -56,16 +50,17 @@ class ModifierGroup {
   }) : id = id ?? uuid.v4();
 }
 
-// 3. Product 
+// 3. Product
 class Product {
   final String id;
   final String name;
   final String? description;
   final double basePrice;
   final String? imagePath;
-  
-  final Category? category; 
-  
+  final bool isActive;
+
+  final Category? category;
+
   final List<ModifierGroup> modifierGroups;
 
   Product({
@@ -74,6 +69,7 @@ class Product {
     this.description,
     required this.basePrice,
     this.imagePath,
+    this.isActive = true,
     this.category,
     this.modifierGroups = const [],
   }) : id = id ?? uuid.v4();

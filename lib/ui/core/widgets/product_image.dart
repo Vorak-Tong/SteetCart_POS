@@ -8,6 +8,7 @@ class ProductImage extends StatelessWidget {
     required this.imagePath,
     this.borderRadius = 12,
     this.fit = BoxFit.cover,
+    this.placeholderColor,
     this.showPlaceholderLabel = true,
     this.placeholderLabel = 'No image',
     this.placeholderIcon = Icons.image_outlined,
@@ -18,6 +19,7 @@ class ProductImage extends StatelessWidget {
   final double borderRadius;
   final BoxFit fit;
 
+  final Color? placeholderColor;
   final bool showPlaceholderLabel;
   final String placeholderLabel;
   final IconData placeholderIcon;
@@ -58,9 +60,11 @@ class ProductImage extends StatelessWidget {
 
   Widget _buildPlaceholder(BuildContext context) {
     final theme = Theme.of(context);
-    final color = theme.colorScheme.primary;
-    final textStyle =
-        theme.textTheme.bodySmall?.copyWith(color: color, fontWeight: FontWeight.w600);
+    final color = placeholderColor ?? theme.colorScheme.primary;
+    final textStyle = theme.textTheme.bodySmall?.copyWith(
+      color: color,
+      fontWeight: FontWeight.w600,
+    );
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
@@ -91,4 +95,3 @@ class ProductImage extends StatelessWidget {
     );
   }
 }
-

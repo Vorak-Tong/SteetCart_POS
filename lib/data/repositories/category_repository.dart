@@ -10,7 +10,6 @@ class CategoryRepository {
       return Category(
         id: row[CategoryDao.colId] as String,
         name: row[CategoryDao.colName] as String,
-        isActive: (row[CategoryDao.colIsActive] as int? ?? 1) == 1,
       );
     }).toList();
   }
@@ -19,7 +18,6 @@ class CategoryRepository {
     await _categoryDao.insert({
       CategoryDao.colId: category.id,
       CategoryDao.colName: category.name,
-      CategoryDao.colIsActive: category.isActive ? 1 : 0,
     });
   }
 

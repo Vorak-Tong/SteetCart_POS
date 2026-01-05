@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/ui/sale/sale_tab_state.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/cart_viewmodel.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_body.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_checkout_bar.dart';
@@ -18,6 +19,19 @@ class _CartPageState extends State<CartPage> {
       TextEditingController();
 
   bool _suppressPaymentTextEvents = false;
+
+  void _onTabIndexChanged() {
+    // Refresh when the Cart tab becomes active.
+    if (saleTabIndex.value == 1) {
+      _viewModel.refreshFromDb();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    saleTabIndex.addListener(_onTabIndexChanged);
+  }
 
   void _clearPaymentInputs() {
     _suppressPaymentTextEvents = true;
@@ -60,6 +74,7 @@ class _CartPageState extends State<CartPage> {
 
   @override
   void dispose() {
+    saleTabIndex.removeListener(_onTabIndexChanged);
     _viewModel.dispose();
     _receivedUsdController.dispose();
     _receivedKhrController.dispose();
@@ -83,10 +98,28 @@ class _CartPageState extends State<CartPage> {
               onKhrChanged: _onKhrChanged,
               bottomPadding: checkoutBarGap,
             ),
-            const SizedBox(height: 20,),
+            const SizedBox(height: 20),
             CartCheckoutBar(
               viewModel: _viewModel,
               onClearPaymentInputs: _clearPaymentInputs,
+              onCheckout: () async {
+                try {
+                  await _viewModel.checkout();
+                  _clearPaymentInputs();
+                  if (mounted) {
+                    saleTabIndex.value = 2;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Order placed')),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Checkout failed: $e')),
+                    );
+                  }
+                }
+              },
             ),
           ],
         );

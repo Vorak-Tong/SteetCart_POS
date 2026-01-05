@@ -37,7 +37,7 @@ class MenuRepository extends ChangeNotifier {
 
   Future<void> _refreshData() async {
     _categories = await _categoryRepository.getCategories();
-    _products = await _productRepository.getProducts();
+    _products = await _productRepository.getProducts(includeInactive: true);
     _modifierGroups = await _modifierRepository.getGlobalModifierGroups();
     notifyListeners();
   }
@@ -87,6 +87,16 @@ class MenuRepository extends ChangeNotifier {
 
   Future<void> deleteProduct(String id) async {
     await _productRepository.deleteProduct(id);
+    await _refreshData();
+  }
+
+  Future<void> archiveProduct(String id) async {
+    await _productRepository.archiveProduct(id);
+    await _refreshData();
+  }
+
+  Future<void> unarchiveProduct(String id) async {
+    await _productRepository.unarchiveProduct(id);
     await _refreshData();
   }
 
