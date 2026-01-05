@@ -1,31 +1,19 @@
 class SalePolicy {
-  final int vatPercent;
-  final int usdToKhrRate;
+  final double vat;
+  final double exchangeRate;
 
   const SalePolicy({
-    this.vatPercent = 0,
-    this.usdToKhrRate = 4000,
+    required this.vat,
+    required this.exchangeRate,
   });
 
   SalePolicy copyWith({
-    int? vatPercent,
-    int? usdToKhrRate,
+    double? vat,
+    double? exchangeRate,
   }) {
     return SalePolicy(
-      vatPercent: vatPercent ?? this.vatPercent,
-      usdToKhrRate: usdToKhrRate ?? this.usdToKhrRate,
+      vat: vat ?? this.vat,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
     );
   }
-
-  @override
-  String toString() => 'SalePolicy(vatPercent: $vatPercent, usdToKhrRate: $usdToKhrRate)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is SalePolicy && other.vatPercent == vatPercent && other.usdToKhrRate == usdToKhrRate;
-  }
-
-  @override
-  int get hashCode => vatPercent.hashCode ^ usdToKhrRate.hashCode;
 }
