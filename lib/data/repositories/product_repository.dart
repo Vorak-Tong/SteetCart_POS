@@ -4,12 +4,37 @@ import '../local/dao/modifier_dao.dart';
 import '../local/dao/product_dao.dart';
 import '../local/dao/product_modifier_group_dao.dart';
 import '../../domain/models/product_model.dart';
+import '../../domain/validation/field_limits.dart';
 
 class ProductRepository {
   final _productDao = ProductDao();
   final _categoryDao = CategoryDao();
   final _modifierDao = ModifierDao();
   final _productModifierGroupDao = ProductModifierGroupDao();
+
+  void _validateProduct(Product product) {
+    final name = product.name.trim();
+    if (name.isEmpty) {
+      throw ArgumentError('Product name cannot be empty.');
+    }
+    if (name.length > FieldLimits.productNameMax) {
+      throw ArgumentError(
+        'Product name must be at most ${FieldLimits.productNameMax} characters.',
+      );
+    }
+
+    final description = product.description?.trim();
+    if (description != null &&
+        description.length > FieldLimits.productDescriptionMax) {
+      throw ArgumentError(
+        'Product description must be at most ${FieldLimits.productDescriptionMax} characters.',
+      );
+    }
+
+    if (product.basePrice <= 0) {
+      throw ArgumentError('Base price must be greater than zero.');
+    }
+  }
 
   // Products
   Future<List<Product>> getProducts({bool includeInactive = false}) async {
@@ -55,14 +80,19 @@ class ProductRepository {
   }
 
   Future<void> createProduct(Product product) async {
+    _validateProduct(product);
     final db = await AppDatabase.instance();
 
     await db.transaction((txn) async {
       // Insert Product
+      final name = product.name.trim();
+      final description = product.description?.trim();
       await _productDao.insert({
         ProductDao.colId: product.id,
-        ProductDao.colName: product.name,
-        ProductDao.colDescription: product.description,
+        ProductDao.colName: name,
+        ProductDao.colDescription: description?.isEmpty ?? true
+            ? null
+            : description,
         ProductDao.colBasePrice: product.basePrice,
         ProductDao.colImage: product.imagePath,
         ProductDao.colIsActive: product.isActive ? 1 : 0,
@@ -79,14 +109,19 @@ class ProductRepository {
   }
 
   Future<void> updateProduct(Product product) async {
+    _validateProduct(product);
     final db = await AppDatabase.instance();
 
     await db.transaction((txn) async {
       // Update Product
+      final name = product.name.trim();
+      final description = product.description?.trim();
       await _productDao.update({
         ProductDao.colId: product.id,
-        ProductDao.colName: product.name,
-        ProductDao.colDescription: product.description,
+        ProductDao.colName: name,
+        ProductDao.colDescription: description?.isEmpty ?? true
+            ? null
+            : description,
         ProductDao.colBasePrice: product.basePrice,
         ProductDao.colImage: product.imagePath,
         ProductDao.colIsActive: product.isActive ? 1 : 0,

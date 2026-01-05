@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
+import 'package:street_cart_pos/data/local/seed/demo_business_seed.dart';
+import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 
 class DatabaseViewerPage extends StatefulWidget {
   const DatabaseViewerPage({super.key});
@@ -19,6 +21,55 @@ class _DatabaseViewerPageState extends State<DatabaseViewerPage> {
   void initState() {
     super.initState();
     _loadTables();
+  }
+
+  Future<void> _seedDemoData() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Seed demo data?'),
+          content: const Text(
+            'This will reset the local database and seed menu + 50 days of served orders for reporting.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Seed'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await DemoBusinessSeed.seedLast50Days(resetDatabase: true);
+      // The UI reads menu data from the in-memory MenuRepository cache, so we
+      // must refresh it after reseeding/resetting the DB.
+      await MenuRepository().init();
+      await _loadTables();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Seeded demo data (menu + 50 days of served orders). Re-open Report if it was already open.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to seed demo data: $e')));
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadTables() async {
@@ -77,16 +128,26 @@ class _DatabaseViewerPageState extends State<DatabaseViewerPage> {
                   DropdownButton<String>(
                     value: _selectedTable,
                     hint: const Text('Select Table'),
-                    items: _tables.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                    items: _tables
+                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                        .toList(),
                     onChanged: (val) {
                       if (val != null) _loadTableData(val);
                     },
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    onPressed: _isLoading ? null : _seedDemoData,
+                    icon: const Icon(Icons.auto_fix_high),
+                    label: const Text('Seed 50 days'),
                   ),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.refresh),
                     onPressed: () {
-                      if (_selectedTable != null) _loadTableData(_selectedTable!);
+                      if (_selectedTable != null) {
+                        _loadTableData(_selectedTable!);
+                      }
                     },
                   ),
                 ],
@@ -96,23 +157,27 @@ class _DatabaseViewerPageState extends State<DatabaseViewerPage> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _rows.isEmpty
-                    ? const Center(child: Text('No data in this table'))
-                    : SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columns: _columns.map((c) => DataColumn(label: Text(c))).toList(),
-                            rows: _rows.map((row) {
-                              return DataRow(
-                                cells: _columns.map((c) {
-                                  return DataCell(Text(row[c]?.toString() ?? 'null'));
-                                }).toList(),
+                ? const Center(child: Text('No data in this table'))
+                : SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: _columns
+                            .map((c) => DataColumn(label: Text(c)))
+                            .toList(),
+                        rows: _rows.map((row) {
+                          return DataRow(
+                            cells: _columns.map((c) {
+                              return DataCell(
+                                Text(row[c]?.toString() ?? 'null'),
                               );
                             }).toList(),
-                          ),
-                        ),
+                          );
+                        }).toList(),
                       ),
+                    ),
+                  ),
           ),
         ],
       ),

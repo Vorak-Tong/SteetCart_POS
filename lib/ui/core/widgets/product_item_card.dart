@@ -89,7 +89,17 @@ class ProductItemCard extends StatelessWidget {
                               color: colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: Text(category, style: textTheme.labelSmall),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                category,
+                                style: textTheme.labelSmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.visible,
+                                softWrap: false,
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),

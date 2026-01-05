@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/domain/validation/field_limits.dart';
 
 class CategoryFormModal extends StatefulWidget {
   const CategoryFormModal({
@@ -98,7 +99,7 @@ class _CategoryFormModalState extends State<CategoryFormModal> {
                       // Input Field
                       TextField(
                         controller: _nameController,
-                        maxLength: 15,
+                        maxLength: FieldLimits.categoryNameMax,
                         decoration: InputDecoration(
                           hintText: 'e.g., Coffee',
                           hintStyle: const TextStyle(

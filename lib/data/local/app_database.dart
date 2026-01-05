@@ -7,7 +7,7 @@ class AppDatabase {
   AppDatabase._();
 
   static const _dbName = 'street_cart_pos_v3.db';
-  static const _dbVersion = 13;
+  static const _dbVersion = 14;
 
   static Database? _db;
 
@@ -48,7 +48,7 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE categories (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL CHECK (length(name) <= 15),
         is_active INTEGER NOT NULL DEFAULT 1
       )
     ''');
@@ -57,8 +57,8 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE products (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        description TEXT,
+        name TEXT NOT NULL CHECK (length(name) <= 20),
+        description TEXT CHECK (description IS NULL OR length(description) <= 80),
         base_price REAL NOT NULL,
         image TEXT,
         is_active INTEGER NOT NULL DEFAULT 1,
@@ -71,7 +71,7 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE modifier_groups (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL CHECK (length(name) <= 20),
         selection_type INTEGER NOT NULL DEFAULT 0,
         price_behavior INTEGER NOT NULL DEFAULT 1,
         min_selection INTEGER NOT NULL DEFAULT 0,
@@ -83,7 +83,7 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE modifier_options (
         id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
+        name TEXT NOT NULL CHECK (length(name) <= 20),
         price REAL,
         is_default INTEGER NOT NULL DEFAULT 0,
         group_id TEXT NOT NULL,
