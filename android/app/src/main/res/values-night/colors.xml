@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Approx of AppTheme chromeColor in dark mode: alphaBlend(primary 10% over near-black). -->
+    <color name="splash_background">#1A2217</color>
+</resources>
+
