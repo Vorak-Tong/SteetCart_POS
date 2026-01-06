@@ -9,7 +9,7 @@ Future<void> playAddToCartFlyAnimation(
   required GlobalKey sourceKey,
   GlobalKey? targetKey,
   required Widget flightWidget,
-  Duration duration = const Duration(milliseconds: 210),
+  Duration duration = const Duration(milliseconds: 190),
 }) async {
   final overlay = Overlay.maybeOf(context, rootOverlay: true);
   if (overlay == null) return;
