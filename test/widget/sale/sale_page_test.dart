@@ -122,12 +122,11 @@ void main() {
       expect(find.text('Chicken Over Rice'), findsNothing);
     });
 
-    testWidgets('opens selection sheet when tapping a product', (tester) async {
+    testWidgets('opens selection page when tapping a product', (tester) async {
       await pumpSalePage(tester);
 
       await tester.tap(find.text('Chicken Over Rice'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
 
       expect(find.text('Add to cart'), findsOneWidget);
     });

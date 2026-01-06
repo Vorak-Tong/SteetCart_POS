@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product.dart';
+import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_item_card.dart';
 
 class ProductGrid extends StatelessWidget {
@@ -58,6 +59,7 @@ class ProductGrid extends StatelessWidget {
             final product = products[index];
             return ProductItemCard(
               imagePath: product.imagePath,
+              heroTag: productSelectionHeroTag(product.id),
               title: product.name,
               category: product.category?.name ?? 'Uncategorized',
               price: product.basePrice,

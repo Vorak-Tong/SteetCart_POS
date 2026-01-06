@@ -77,10 +77,8 @@ class _SalePageState extends State<SalePage> {
                       )
                     : ProductGrid(
                         products: _viewModel.filteredProducts,
-                        onProductTap: (product) => showProductSelectionSheet(
-                          context,
-                          product: product,
-                        ),
+                        onProductTap: (product) =>
+                            openProductSelectionPage(context, product: product),
                       ),
               ),
             ],

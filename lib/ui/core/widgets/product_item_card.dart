@@ -7,6 +7,7 @@ class ProductItemCard extends StatelessWidget {
   const ProductItemCard({
     super.key,
     this.imagePath,
+    this.heroTag,
     required this.title,
     required this.category,
     required this.price,
@@ -14,6 +15,7 @@ class ProductItemCard extends StatelessWidget {
   });
 
   final String? imagePath;
+  final String? heroTag;
   final String title;
   final String category;
   final double price;
@@ -25,7 +27,7 @@ class ProductItemCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Card(
+    final card = Card(
       color: colorScheme.surface,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -111,6 +113,18 @@ class ProductItemCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+
+    final tag = heroTag;
+    if (tag == null) {
+      return card;
+    }
+
+    return Hero(
+      tag: tag,
+      createRectTween: (begin, end) =>
+          MaterialRectCenterArcTween(begin: begin, end: end),
+      child: Material(type: MaterialType.transparency, child: card),
     );
   }
 }
