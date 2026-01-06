@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/ui/core/widgets/inline_hint_card.dart';
 import 'package:street_cart_pos/ui/sale/utils/sale_tab_state.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/cart_viewmodel.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_body.dart';
@@ -91,6 +92,25 @@ class _CartPageState extends State<CartPage> {
       listenable: _viewModel,
       builder: (context, _) {
         const checkoutBarGap = 120.0;
+
+        if (!_viewModel.hasLoadedOnce) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (_viewModel.hasLoadedOnce &&
+            !_viewModel.loading &&
+            _viewModel.items.isEmpty) {
+          _clearPaymentInputs();
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: InlineHintCard(
+              alignment: Alignment.center,
+              message: 'Cart is empty. Add items from Sale to start an order.',
+              actionLabel: 'Go to Sale',
+              onAction: () => saleTabIndex.value = 0,
+            ),
+          );
+        }
 
         return Stack(
           children: [

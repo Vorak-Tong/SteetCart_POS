@@ -7,6 +7,7 @@ class InlineHintCard extends StatelessWidget {
     this.icon = Icons.tips_and_updates_outlined,
     this.actionLabel,
     this.onAction,
+    this.alignment = Alignment.topCenter,
     this.maxWidth = 520,
   }) : assert((actionLabel == null) == (onAction == null));
 
@@ -14,6 +15,7 @@ class InlineHintCard extends StatelessWidget {
   final IconData icon;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final AlignmentGeometry alignment;
   final double maxWidth;
 
   @override
@@ -22,7 +24,7 @@ class InlineHintCard extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Align(
-      alignment: Alignment.topCenter,
+      alignment: alignment,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Card(
