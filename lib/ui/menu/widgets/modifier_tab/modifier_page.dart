@@ -27,6 +27,10 @@ class _ModifierPageState extends State<ModifierPage> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
+        if (_viewModel.loading && !_viewModel.hasLoadedOnce) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         return Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(

@@ -19,7 +19,15 @@ class MenuRepository extends ChangeNotifier {
     _instance = instance;
   }
 
+  bool _initialized = false;
+
   Future<void> init() async {
+    if (_initialized) return;
+    await refresh();
+    _initialized = true;
+  }
+
+  Future<void> refresh() async {
     await _refreshData();
   }
 

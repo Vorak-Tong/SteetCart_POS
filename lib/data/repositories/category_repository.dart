@@ -1,6 +1,5 @@
 import '../local/dao/category_dao.dart';
 import '../../domain/models/product_model.dart';
-import '../../domain/validation/field_limits.dart';
 
 class CategoryRepository {
   final _categoryDao = CategoryDao();
@@ -20,9 +19,9 @@ class CategoryRepository {
     if (name.isEmpty) {
       throw ArgumentError('Category name cannot be empty.');
     }
-    if (name.length > FieldLimits.categoryNameMax) {
+    if (name.length > Category.nameMax) {
       throw ArgumentError(
-        'Category name must be at most ${FieldLimits.categoryNameMax} characters.',
+        'Category name must be at most ${Category.nameMax} characters.',
       );
     }
 

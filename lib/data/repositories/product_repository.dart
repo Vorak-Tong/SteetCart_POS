@@ -4,7 +4,6 @@ import '../local/dao/modifier_dao.dart';
 import '../local/dao/product_dao.dart';
 import '../local/dao/product_modifier_group_dao.dart';
 import '../../domain/models/product_model.dart';
-import '../../domain/validation/field_limits.dart';
 
 class ProductRepository {
   final _productDao = ProductDao();
@@ -17,17 +16,16 @@ class ProductRepository {
     if (name.isEmpty) {
       throw ArgumentError('Product name cannot be empty.');
     }
-    if (name.length > FieldLimits.productNameMax) {
+    if (name.length > Product.nameMax) {
       throw ArgumentError(
-        'Product name must be at most ${FieldLimits.productNameMax} characters.',
+        'Product name must be at most ${Product.nameMax} characters.',
       );
     }
 
     final description = product.description?.trim();
-    if (description != null &&
-        description.length > FieldLimits.productDescriptionMax) {
+    if (description != null && description.length > Product.descriptionMax) {
       throw ArgumentError(
-        'Product description must be at most ${FieldLimits.productDescriptionMax} characters.',
+        'Product description must be at most ${Product.descriptionMax} characters.',
       );
     }
 

@@ -79,7 +79,7 @@ class CartCheckoutBar extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerRight,
                   child: Text(
-                    formatKhr(viewModel.grandTotalKhr),
+                    '(${formatKhr(viewModel.grandTotalKhr)})',
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
@@ -91,6 +91,10 @@ class CartCheckoutBar extends StatelessWidget {
                   children: [
                     IconButton.filledTonal(
                       onPressed: viewModel.items.isEmpty
+                          ? null
+                          : (viewModel.loading ||
+                                viewModel.checkingOut ||
+                                viewModel.clearingCart)
                           ? null
                           : () => _confirmClearCart(context),
                       tooltip: 'Clear cart',

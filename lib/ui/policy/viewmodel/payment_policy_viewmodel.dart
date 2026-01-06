@@ -3,25 +3,24 @@ import 'package:street_cart_pos/data/repositories/sale_policy_repository.dart';
 import 'package:street_cart_pos/domain/models/sale_policy.dart';
 import 'package:street_cart_pos/utils/command.dart';
 
-class PolicyViewModel extends ChangeNotifier {
+class PaymentPolicyViewModel extends ChangeNotifier {
   final SalePolicyRepository _repository;
 
   SalePolicy _policy = const SalePolicy(vat: 0, exchangeRate: 4000);
-  
-  late final Command loadPolicyCommand;
+
+  late final CommandWithParam<void, void> loadPolicyCommand;
   late final CommandWithParam<SalePolicy, void> updatePolicyCommand;
 
-  PolicyViewModel({SalePolicyRepository? repository}) 
-      : _repository = repository ?? SalePolicyRepositoryImpl() {
-    
-    loadPolicyCommand = Command(_loadPolicy);
+  PaymentPolicyViewModel({SalePolicyRepository? repository})
+    : _repository = repository ?? SalePolicyRepositoryImpl() {
+    loadPolicyCommand = CommandWithParam((_) => _loadPolicy());
     updatePolicyCommand = CommandWithParam(_updatePolicy);
-    
+
     // Notify listeners when commands change state (running/idle)
     loadPolicyCommand.addListener(notifyListeners);
     updatePolicyCommand.addListener(notifyListeners);
-    
-    loadPolicyCommand.execute();
+
+    loadPolicyCommand.execute(null);
   }
 
   SalePolicy get policy => _policy;

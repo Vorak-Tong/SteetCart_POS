@@ -74,6 +74,10 @@ class Order {
   CartStatus cartStatus;
   OrderStatus? orderStatus;
 
+  final int? vatPercentApplied;
+  final int? usdToKhrRateApplied;
+  final RoundingMode? roundingModeApplied;
+
   Payment? payment;
 
   List<OrderProduct> orderProducts;
@@ -85,6 +89,9 @@ class Order {
     required this.paymentType,
     required this.cartStatus,
     required this.orderStatus,
+    this.vatPercentApplied,
+    this.usdToKhrRateApplied,
+    this.roundingModeApplied,
     this.payment,
     this.orderProducts = const [],
   }) : id = id ?? uuid.v4();

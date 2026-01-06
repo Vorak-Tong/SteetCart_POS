@@ -1,5 +1,6 @@
-import 'package:street_cart_pos/data/local/app_database.dart';
-import 'package:street_cart_pos/domain/models/sale_policy.dart';
+import '../../domain/models/sale_policy.dart';
+import '../../domain/models/enums.dart';
+import '../local/dao/sale_policy_dao.dart';
 
 abstract class SalePolicyRepository {
   Future<SalePolicy> getSalePolicy();
@@ -7,29 +8,39 @@ abstract class SalePolicyRepository {
 }
 
 class SalePolicyRepositoryImpl implements SalePolicyRepository {
+  final SalePolicyDao _dao = SalePolicyDao();
+
   @override
   Future<SalePolicy> getSalePolicy() async {
-    final db = await AppDatabase.instance();
-    final result = await db.query('sale_policy', limit: 1);
-
-    if (result.isNotEmpty) {
+    final row = await _dao.get();
+    if (row != null) {
+      final roundingRaw =
+          row[SalePolicyDao.colRoundingMode] as String? ?? 'roundUp';
+      final roundingMode = RoundingMode.values.any((x) => x.name == roundingRaw)
+          ? RoundingMode.values.byName(roundingRaw)
+          : RoundingMode.roundUp;
       return SalePolicy(
-        vat: (result.first['vat'] as num).toDouble(),
-        exchangeRate: (result.first['exchange_rate'] as num).toDouble(),
+        vat: (row[SalePolicyDao.colVatPercent] as num).toDouble(),
+        exchangeRate: (row[SalePolicyDao.colUsdToKhrRate] as num).toDouble(),
+        roundingMode: roundingMode,
       );
     }
-    return const SalePolicy(vat: 0, exchangeRate: 4000);
+
+    const fallback = SalePolicy(vat: 0, exchangeRate: 4000);
+    await _dao.insertOrUpdate({
+      SalePolicyDao.colVatPercent: fallback.vat,
+      SalePolicyDao.colUsdToKhrRate: fallback.exchangeRate,
+      SalePolicyDao.colRoundingMode: fallback.roundingMode.name,
+    });
+    return fallback;
   }
 
   @override
   Future<void> updateSalePolicy(SalePolicy policy) async {
-    final db = await AppDatabase.instance();
-    await db.transaction((txn) async {
-      await txn.delete('sale_policy');
-      await txn.insert('sale_policy', {
-        'vat': policy.vat,
-        'exchange_rate': policy.exchangeRate,
-      });
+    await _dao.insertOrUpdate({
+      SalePolicyDao.colVatPercent: policy.vat,
+      SalePolicyDao.colUsdToKhrRate: policy.exchangeRate,
+      SalePolicyDao.colRoundingMode: policy.roundingMode.name,
     });
   }
 }

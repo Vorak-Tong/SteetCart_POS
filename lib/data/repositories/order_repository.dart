@@ -18,13 +18,76 @@ class OrderRepository {
 
   Future<List<Order>> getOrders() async {
     final orderRows = await _orderDao.getAll();
-    final List<Order> orders = [];
-
-    for (final row in orderRows) {
-      orders.add(await _hydrateOrderFromRow(row));
+    if (orderRows.isEmpty) {
+      return const [];
     }
 
-    return orders;
+    final orderIds = orderRows
+        .map((row) => row[OrderDao.colId] as String)
+        .toList(growable: false);
+
+    final results = await Future.wait<Object?>([
+      _orderItemDao.getByOrderIds(orderIds),
+      _paymentDao.getByOrderIds(orderIds),
+    ]);
+
+    final itemRows = results[0] as List<Map<String, Object?>>;
+    final paymentRows = results[1] as List<Map<String, Object?>>;
+
+    final missingProductIds = <String>{};
+    for (final row in itemRows) {
+      final productId = row[OrderItemDao.colProductId] as String?;
+      if (productId == null) continue;
+      final snapName = row[OrderItemDao.colProductName] as String?;
+      final snapUnitPrice = row[OrderItemDao.colUnitPrice] as num?;
+      if (snapName == null || snapUnitPrice == null) {
+        missingProductIds.add(productId);
+      }
+    }
+
+    final productsById = <String, Product>{};
+    if (missingProductIds.isNotEmpty) {
+      final productRows = await _productDao.getByIds(
+        missingProductIds.toList(growable: false),
+      );
+      for (final productRow in productRows) {
+        final id = productRow[ProductDao.colId] as String?;
+        if (id == null) continue;
+        productsById[id] = Product(
+          id: id,
+          name: productRow[ProductDao.colName] as String,
+          description: productRow[ProductDao.colDescription] as String?,
+          basePrice: (productRow[ProductDao.colBasePrice] as num).toDouble(),
+          imagePath: productRow[ProductDao.colImage] as String?,
+          isActive: (productRow[ProductDao.colIsActive] as int? ?? 1) == 1,
+        );
+      }
+    }
+
+    final itemsByOrderId = <String, List<Map<String, Object?>>>{};
+    for (final row in itemRows) {
+      final orderId = row[OrderItemDao.colOrderId] as String?;
+      if (orderId == null) continue;
+      (itemsByOrderId[orderId] ??= <Map<String, Object?>>[]).add(row);
+    }
+
+    final paymentByOrderId = <String, Map<String, Object?>>{};
+    for (final row in paymentRows) {
+      final orderId = row[PaymentDao.colOrderId] as String?;
+      if (orderId == null) continue;
+      paymentByOrderId[orderId] = row;
+    }
+
+    return orderRows
+        .map(
+          (row) => _hydrateOrderFromRowWithPrefetch(
+            row,
+            itemRows: itemsByOrderId[row[OrderDao.colId] as String] ?? const [],
+            paymentRow: paymentByOrderId[row[OrderDao.colId] as String],
+            productsById: productsById,
+          ),
+        )
+        .toList(growable: false);
   }
 
   Future<Order?> getDraftOrder() async {
@@ -75,6 +138,9 @@ class OrderRepository {
           OrderDao.colPaymentType: paymentType.name,
           OrderDao.colCartStatus: CartStatus.draft.name,
           OrderDao.colOrderStatus: null,
+          OrderDao.colVatPercentApplied: null,
+          OrderDao.colUsdToKhrRateApplied: null,
+          OrderDao.colRoundingModeApplied: null,
         };
         await _orderDao.insert(orderRow, txn: txn);
       }
@@ -143,6 +209,9 @@ class OrderRepository {
         OrderDao.colPaymentType: draft.paymentType.name,
         OrderDao.colCartStatus: draft.cartStatus.name,
         OrderDao.colOrderStatus: null,
+        OrderDao.colVatPercentApplied: null,
+        OrderDao.colUsdToKhrRateApplied: null,
+        OrderDao.colRoundingModeApplied: null,
       };
       await _orderDao.insert(orderRow, txn: txn);
 
@@ -230,6 +299,9 @@ class OrderRepository {
     required OrderType orderType,
     required PaymentMethod paymentType,
     required Payment payment,
+    required int vatPercentApplied,
+    required int usdToKhrRateApplied,
+    required RoundingMode roundingModeApplied,
   }) async {
     final db = await AppDatabase.instance();
     await db.transaction((txn) async {
@@ -240,6 +312,9 @@ class OrderRepository {
         OrderDao.colPaymentType: paymentType.name,
         OrderDao.colCartStatus: CartStatus.finalized.name,
         OrderDao.colOrderStatus: OrderStatus.inPrep.name,
+        OrderDao.colVatPercentApplied: vatPercentApplied.clamp(0, 100),
+        OrderDao.colUsdToKhrRateApplied: usdToKhrRateApplied,
+        OrderDao.colRoundingModeApplied: roundingModeApplied.name,
       };
 
       await _orderDao.update(orderUpdate, txn: txn);
@@ -375,9 +450,143 @@ class OrderRepository {
       ),
       cartStatus: cartStatus,
       orderStatus: orderStatus,
+      vatPercentApplied: row[OrderDao.colVatPercentApplied] as int?,
+      usdToKhrRateApplied: row[OrderDao.colUsdToKhrRateApplied] as int?,
+      roundingModeApplied: _parseRoundingMode(
+        row[OrderDao.colRoundingModeApplied] as String?,
+      ),
       orderProducts: orderProducts,
       payment: payment,
     );
+  }
+
+  Order _hydrateOrderFromRowWithPrefetch(
+    Map<String, Object?> row, {
+    required List<Map<String, Object?>> itemRows,
+    required Map<String, Object?>? paymentRow,
+    required Map<String, Product> productsById,
+  }) {
+    final orderId = row[OrderDao.colId] as String;
+
+    final cartStatusRaw = row[OrderDao.colCartStatus] as String? ?? 'draft';
+    final cartStatus = CartStatus.values.byName(cartStatusRaw);
+    final orderStatusRaw = row[OrderDao.colOrderStatus] as String?;
+    final OrderStatus? orderStatus = orderStatusRaw == null
+        ? null
+        : OrderStatus.values.byName(orderStatusRaw);
+
+    final orderProducts = itemRows
+        .map((itemRow) {
+          final productId = itemRow[OrderItemDao.colProductId] as String?;
+
+          Product? product;
+          final snapName = itemRow[OrderItemDao.colProductName] as String?;
+          final snapUnitPrice = itemRow[OrderItemDao.colUnitPrice] as num?;
+          final snapImage = itemRow[OrderItemDao.colProductImage] as String?;
+          final snapDescription =
+              itemRow[OrderItemDao.colProductDescription] as String?;
+
+          if (snapName != null && snapUnitPrice != null) {
+            product = Product(
+              id: productId,
+              name: snapName,
+              description: snapDescription,
+              basePrice: snapUnitPrice.toDouble(),
+              imagePath: snapImage,
+              isActive: false,
+            );
+          } else if (productId != null) {
+            product = productsById[productId];
+          }
+
+          final note = itemRow[OrderItemDao.colNote] as String?;
+          final selections = _parseModifierSelections(
+            itemRow[OrderItemDao.colModifierSelections] as String?,
+          );
+
+          return OrderProduct(
+            id: itemRow[OrderItemDao.colId] as String,
+            quantity: itemRow[OrderItemDao.colQuantity] as int,
+            product: product,
+            modifierSelections: selections,
+            note: note,
+          );
+        })
+        .toList(growable: false);
+
+    Payment? payment;
+    if (paymentRow != null) {
+      payment = Payment(
+        id: paymentRow[PaymentDao.colId] as String,
+        type: PaymentMethod
+            .values[paymentRow[PaymentDao.colPaymentMethod] as int],
+        recieveAmountKHR: paymentRow[PaymentDao.colReceiveAmountKhr] as int,
+        recieveAmountUSD: (paymentRow[PaymentDao.colReceiveAmountUsd] as num)
+            .toDouble(),
+        changeKhr: paymentRow[PaymentDao.colChangeKhr] as int,
+        changeUSD: (paymentRow[PaymentDao.colChangeUsd] as num).toDouble(),
+      );
+    }
+
+    return Order(
+      id: orderId,
+      timeStamp: DateTime.fromMillisecondsSinceEpoch(
+        row[OrderDao.colTimeStamp] as int,
+      ),
+      orderType: OrderType.values.byName(
+        row[OrderDao.colOrderType] as String? ?? 'dineIn',
+      ),
+      paymentType: PaymentMethod.values.byName(
+        row[OrderDao.colPaymentType] as String? ?? 'cash',
+      ),
+      cartStatus: cartStatus,
+      orderStatus: orderStatus,
+      vatPercentApplied: row[OrderDao.colVatPercentApplied] as int?,
+      usdToKhrRateApplied: row[OrderDao.colUsdToKhrRateApplied] as int?,
+      roundingModeApplied: _parseRoundingMode(
+        row[OrderDao.colRoundingModeApplied] as String?,
+      ),
+      orderProducts: orderProducts,
+      payment: payment,
+    );
+  }
+
+  RoundingMode? _parseRoundingMode(String? raw) {
+    if (raw == null || raw.trim().isEmpty) {
+      return null;
+    }
+    return RoundingMode.values.any((x) => x.name == raw)
+        ? RoundingMode.values.byName(raw)
+        : null;
+  }
+
+  List<OrderModifierSelection> _parseModifierSelections(String? rawSelections) {
+    if (rawSelections == null || rawSelections.trim().isEmpty) {
+      return const [];
+    }
+    try {
+      final decoded = jsonDecode(rawSelections);
+      if (decoded is! List) return const [];
+
+      final parsed = <OrderModifierSelection>[];
+      for (final entry in decoded) {
+        if (entry is! Map) continue;
+        final groupName = entry['groupName'];
+        final optionNames = entry['optionNames'];
+        if (groupName is! String || optionNames is! List) continue;
+        parsed.add(
+          OrderModifierSelection(
+            groupName: groupName,
+            optionNames: optionNames.whereType<String>().toList(
+              growable: false,
+            ),
+          ),
+        );
+      }
+      return parsed;
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<void> createOrder(Order order) async {
@@ -392,6 +601,9 @@ class OrderRepository {
         OrderDao.colPaymentType: order.paymentType.name,
         OrderDao.colCartStatus: order.cartStatus.name,
         OrderDao.colOrderStatus: order.orderStatus?.name,
+        OrderDao.colVatPercentApplied: order.vatPercentApplied,
+        OrderDao.colUsdToKhrRateApplied: order.usdToKhrRateApplied,
+        OrderDao.colRoundingModeApplied: order.roundingModeApplied?.name,
       };
       await _orderDao.insert(orderRow, txn: txn);
 
@@ -453,6 +665,9 @@ class OrderRepository {
         OrderDao.colPaymentType: order.paymentType.name,
         OrderDao.colCartStatus: order.cartStatus.name,
         OrderDao.colOrderStatus: order.orderStatus?.name,
+        OrderDao.colVatPercentApplied: order.vatPercentApplied,
+        OrderDao.colUsdToKhrRateApplied: order.usdToKhrRateApplied,
+        OrderDao.colRoundingModeApplied: order.roundingModeApplied?.name,
       };
       await _orderDao.update(orderRow, txn: txn);
 

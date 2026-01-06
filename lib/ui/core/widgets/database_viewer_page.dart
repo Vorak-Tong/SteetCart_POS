@@ -53,7 +53,7 @@ class _DatabaseViewerPageState extends State<DatabaseViewerPage> {
       await DemoBusinessSeed.seedLast50Days(resetDatabase: true);
       // The UI reads menu data from the in-memory MenuRepository cache, so we
       // must refresh it after reseeding/resetting the DB.
-      await MenuRepository().init();
+      await MenuRepository().refresh();
       await _loadTables();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

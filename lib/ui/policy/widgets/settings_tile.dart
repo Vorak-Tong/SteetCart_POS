@@ -35,7 +35,7 @@ class SettingsTile extends StatelessWidget {
       ),
       subtitle: Text(
         subtitle,
-        style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
       ),
       onTap: onTap,
     );

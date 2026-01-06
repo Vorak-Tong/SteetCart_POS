@@ -50,6 +50,25 @@ class CartTotalsSummary extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Rate',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            Text(
+              '(1 USD = ${formatIntWithThousandsSeparator(viewModel.exchangeRateKhrPerUsd)} KHR)',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

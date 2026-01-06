@@ -9,7 +9,7 @@ import 'package:street_cart_pos/data/local/dao/order_item_dao.dart';
 import 'package:street_cart_pos/data/local/dao/payment_dao.dart';
 import 'package:street_cart_pos/data/local/dao/product_dao.dart';
 import 'package:street_cart_pos/data/local/dao/product_modifier_group_dao.dart';
-import 'package:street_cart_pos/domain/validation/report_date_limits.dart';
+import 'package:street_cart_pos/domain/models/report_model.dart';
 import 'package:uuid/uuid.dart';
 
 class DemoBusinessSeed {
@@ -223,7 +223,7 @@ class DemoBusinessSeed {
       // -----------------------------------------------------------------------
       // Orders: 50 days worth of served orders (report uses served only)
       // -----------------------------------------------------------------------
-      final now = ReportDateLimits.clamp(DateTime.now());
+      final now = Report.clampDate(DateTime.now());
       final startDay = DateTime(
         now.year,
         now.month,
@@ -417,4 +417,4 @@ class _SeedProduct {
   final double basePrice;
   final String categoryId;
   final List<String> modifierGroupIds;
-} 
+}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
 import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/domain/models/store_profile.dart';
 import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_list_tile.dart';
 
 class OrderListView extends StatelessWidget {
@@ -8,6 +9,10 @@ class OrderListView extends StatelessWidget {
     super.key,
     required this.orders,
     required this.orderNumberById,
+    required this.vatPercent,
+    required this.exchangeRateKhrPerUsd,
+    required this.roundingMode,
+    required this.storeProfile,
     required this.isExpanded,
     required this.onToggleExpanded,
     required this.onUpdateStatus,
@@ -15,9 +20,14 @@ class OrderListView extends StatelessWidget {
 
   final List<Order> orders;
   final Map<String, int> orderNumberById;
+  final int vatPercent;
+  final int exchangeRateKhrPerUsd;
+  final RoundingMode roundingMode;
+  final StoreProfile storeProfile;
   final bool Function(String orderId) isExpanded;
   final void Function(String orderId) onToggleExpanded;
-  final void Function(String orderId, OrderStatus status) onUpdateStatus;
+  final Future<void> Function(String orderId, OrderStatus status)
+  onUpdateStatus;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +44,10 @@ class OrderListView extends StatelessWidget {
         return OrderListTile(
           order: order,
           displayNumber: orderNumberById[order.id],
+          vatPercent: vatPercent,
+          exchangeRateKhrPerUsd: exchangeRateKhrPerUsd,
+          roundingMode: roundingMode,
+          storeProfile: storeProfile,
           expanded: isExpanded(order.id),
           onToggleExpanded: () => onToggleExpanded(order.id),
           onUpdateStatus: (status) => onUpdateStatus(order.id, status),

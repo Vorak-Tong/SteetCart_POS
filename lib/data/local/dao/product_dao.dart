@@ -34,6 +34,30 @@ class ProductDao {
     return results.isNotEmpty ? results.first : null;
   }
 
+  Future<List<Map<String, Object?>>> getByIds(List<String> ids) async {
+    if (ids.isEmpty) {
+      return const [];
+    }
+
+    final db = await AppDatabase.instance();
+    final results = <Map<String, Object?>>[];
+
+    const maxArgs = 999;
+    for (var start = 0; start < ids.length; start += maxArgs) {
+      final chunk = ids.sublist(start, (start + maxArgs).clamp(0, ids.length));
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      results.addAll(
+        await db.query(
+          tableName,
+          where: '$colId IN ($placeholders)',
+          whereArgs: chunk,
+        ),
+      );
+    }
+
+    return results;
+  }
+
   Future<int> insert(Map<String, Object?> data, {Transaction? txn}) async {
     final DatabaseExecutor db = txn ?? await AppDatabase.instance();
     return await db.insert(

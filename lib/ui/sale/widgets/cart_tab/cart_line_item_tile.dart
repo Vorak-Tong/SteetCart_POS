@@ -18,15 +18,29 @@ class CartLineItemTile extends StatelessWidget {
 
   List<Widget> _buildSubtitleLines(ThemeData theme) {
     final lines = <Widget>[];
+    var hasModifiers = false;
 
     for (final selection in item.modifierSelections) {
       if (selection.optionNames.isEmpty) {
         continue;
       }
+      hasModifiers = true;
       lines.add(
         Text(
           '${selection.groupName}: ${selection.optionNames.join(', ')}',
           style: theme.textTheme.bodySmall,
+        ),
+      );
+    }
+
+    if (!hasModifiers) {
+      lines.add(
+        Text(
+          'no modifiers',
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontStyle: FontStyle.italic,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       );
     }

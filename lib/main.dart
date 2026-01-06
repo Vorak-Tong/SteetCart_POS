@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
           routerConfig: appRouter,
           builder: (context, child) {
             final mediaQuery = MediaQuery.of(context);
-            final systemScale = mediaQuery.textScaleFactor;
+            final systemScale = mediaQuery.textScaler.scale(1.0);
             final deviceScale = _deviceTextScaleFactor(mediaQuery.size.width);
 
             // Respect accessibility: only scale down when user hasn't increased
@@ -66,11 +66,15 @@ class MyApp extends StatelessWidget {
                 ? systemScale * deviceScale
                 : systemScale;
 
-            return MediaQuery(
-              data: mediaQuery.copyWith(
-                textScaler: TextScaler.linear(effectiveScale),
+            return GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: MediaQuery(
+                data: mediaQuery.copyWith(
+                  textScaler: TextScaler.linear(effectiveScale),
+                ),
+                child: child ?? const SizedBox.shrink(),
               ),
-              child: child ?? const SizedBox.shrink(),
             );
           },
         );

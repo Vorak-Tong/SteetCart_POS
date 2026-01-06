@@ -11,6 +11,9 @@ class OrderDao {
   static const colPaymentType = 'payment_type';
   static const colCartStatus = 'cart_status';
   static const colOrderStatus = 'order_status';
+  static const colVatPercentApplied = 'vat_percent_applied';
+  static const colUsdToKhrRateApplied = 'usd_to_khr_rate_applied';
+  static const colRoundingModeApplied = 'rounding_mode_applied';
 
   Future<List<Map<String, Object?>>> getAll() async {
     final db = await AppDatabase.instance();

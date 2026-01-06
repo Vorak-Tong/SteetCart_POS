@@ -1,30 +1,70 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter/material.dart' show DateUtils;
 import 'package:street_cart_pos/data/repositories/order_repository.dart';
+import 'package:street_cart_pos/data/repositories/sale_policy_repository.dart';
+import 'package:street_cart_pos/data/repositories/store_profile_repository.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
 import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/domain/models/sale_policy.dart';
+import 'package:street_cart_pos/domain/models/store_profile.dart';
+import 'package:street_cart_pos/utils/command.dart';
 
 class OrderViewModel extends ChangeNotifier {
-  OrderViewModel({DateTime? initialDate, OrderRepository? orderRepository})
-    : _orderRepository = orderRepository ?? OrderRepository() {
+  OrderViewModel({
+    DateTime? initialDate,
+    OrderRepository? orderRepository,
+    SalePolicyRepository? salePolicyRepository,
+    StoreProfileRepository? storeProfileRepository,
+  }) : _orderRepository = orderRepository ?? OrderRepository(),
+       _salePolicyRepository =
+           salePolicyRepository ?? SalePolicyRepositoryImpl(),
+       _storeProfileRepository =
+           storeProfileRepository ?? StoreProfileRepositoryImpl() {
     _selectedDate = DateUtils.dateOnly(initialDate ?? DateTime.now());
     _statusFilter = OrderStatus.inPrep;
     _orders = const [];
     _expandedOrderIds = <String>{};
-    refreshFromDb();
+
+    loadOrdersCommand = CommandWithParam((_) => _loadOrders());
+    _updateOrderStatusCommand = CommandWithParam(_updateOrderStatus);
+    loadOrdersCommand.addListener(notifyListeners);
+    _updateOrderStatusCommand.addListener(notifyListeners);
+
+    loadOrdersCommand.execute(null);
   }
 
   final OrderRepository _orderRepository;
+  final SalePolicyRepository _salePolicyRepository;
+  final StoreProfileRepository _storeProfileRepository;
+
+  SalePolicy _policy = const SalePolicy(vat: 0, exchangeRate: 4000);
+  StoreProfile _storeProfile = const StoreProfile(
+    name: 'My Store',
+    phone: '0123456789',
+    address: 'st1, Mod District, Mod City',
+  );
+
+  int get vatPercent => _policy.vat.round().clamp(0, 100);
+  int get exchangeRateKhrPerUsd =>
+      _policy.exchangeRate.round().clamp(1, 1000000);
+  RoundingMode get roundingMode => _policy.roundingMode;
+  StoreProfile get storeProfile => _storeProfile;
+
+  late final CommandWithParam<void, void> loadOrdersCommand;
+  late final CommandWithParam<_UpdateOrderStatusRequest, void>
+  _updateOrderStatusCommand;
 
   late DateTime _selectedDate;
   late OrderStatus _statusFilter;
   late List<Order> _orders;
   late Set<String> _expandedOrderIds;
-  bool _loading = false;
+  bool _hasLoadedOnce = false;
 
   DateTime get selectedDate => _selectedDate;
   OrderStatus get statusFilter => _statusFilter;
-  bool get loading => _loading;
+  bool get loading => loadOrdersCommand.running;
+  bool get updatingStatus => _updateOrderStatusCommand.running;
+  bool get hasLoadedOnce => _hasLoadedOnce;
 
   List<OrderStatus> get availableStatuses => const [
     OrderStatus.inPrep,
@@ -66,19 +106,7 @@ class OrderViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> refreshFromDb() async {
-    if (_loading) return;
-    _loading = true;
-    notifyListeners();
-
-    try {
-      _orders = await _orderRepository.getOrders();
-      _expandedOrderIds.removeWhere((id) => !_orders.any((o) => o.id == id));
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
-  }
+  Future<void> refreshFromDb() => loadOrdersCommand.execute(null);
 
   void setDate(DateTime date) {
     final next = DateUtils.dateOnly(date);
@@ -88,6 +116,7 @@ class OrderViewModel extends ChangeNotifier {
     _selectedDate = next;
     _expandedOrderIds.clear();
     notifyListeners();
+    loadOrdersCommand.execute(null);
   }
 
   void setStatusFilter(OrderStatus status) {
@@ -102,7 +131,28 @@ class OrderViewModel extends ChangeNotifier {
   Future<void> updateOrderStatus({
     required String orderId,
     required OrderStatus status,
-  }) async {
+  }) => _updateOrderStatusCommand.execute(
+    _UpdateOrderStatusRequest(orderId: orderId, status: status),
+  );
+
+  Future<void> _loadOrders() async {
+    final results = await Future.wait<Object?>([
+      _orderRepository.getOrders(),
+      _salePolicyRepository.getSalePolicy(),
+      _storeProfileRepository.getStoreProfile(),
+    ]);
+    _orders = results[0] as List<Order>;
+    _policy = results[1] as SalePolicy;
+    _storeProfile = results[2] as StoreProfile;
+    _expandedOrderIds.removeWhere((id) => !_orders.any((o) => o.id == id));
+    _hasLoadedOnce = true;
+    notifyListeners();
+  }
+
+  Future<void> _updateOrderStatus(_UpdateOrderStatusRequest request) async {
+    final orderId = request.orderId;
+    final status = request.status;
+
     final index = _orders.indexWhere((o) => o.id == orderId);
     if (index == -1) {
       return;
@@ -127,4 +177,21 @@ class OrderViewModel extends ChangeNotifier {
       rethrow;
     }
   }
+
+  @override
+  void dispose() {
+    loadOrdersCommand.removeListener(notifyListeners);
+    _updateOrderStatusCommand.removeListener(notifyListeners);
+    super.dispose();
+  }
+}
+
+class _UpdateOrderStatusRequest {
+  const _UpdateOrderStatusRequest({
+    required this.orderId,
+    required this.status,
+  });
+
+  final String orderId;
+  final OrderStatus status;
 }

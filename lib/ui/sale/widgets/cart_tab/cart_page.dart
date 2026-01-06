@@ -106,21 +106,26 @@ class _CartPageState extends State<CartPage> {
                 try {
                   await _viewModel.checkout();
                   _clearPaymentInputs();
-                  if (mounted) {
-                    saleTabIndex.value = 2;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Order placed')),
-                    );
-                  }
+                  if (!context.mounted) return;
+                  saleTabIndex.value = 2;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('Order placed')));
                 } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Checkout failed: $e')),
-                    );
-                  }
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Checkout failed: $e')),
+                  );
                 }
               },
             ),
+            if (_viewModel.loading && !_viewModel.hasLoadedOnce)
+              Positioned.fill(
+                child: ColoredBox(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+              ),
           ],
         );
       },

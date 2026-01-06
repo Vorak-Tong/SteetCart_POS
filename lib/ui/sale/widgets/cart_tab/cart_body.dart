@@ -30,19 +30,17 @@ class CartBody extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(12, 12, 12, bottomPadding),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CartOrderTypeSection(
             value: viewModel.orderType,
             onChanged: viewModel.setOrderType,
           ),
           const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              'Cart Items',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          Text(
+            'Cart Items',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 8),
