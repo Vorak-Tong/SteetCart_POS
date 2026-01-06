@@ -3,7 +3,6 @@ import 'package:uuid/uuid.dart';
 import '../../domain/models/enums.dart';
 import '../../domain/models/order.dart';
 import '../../domain/models/order_modifier_selection.dart';
-import '../../domain/models/order_product.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/product.dart';
 import '../mappers/order_mapper.dart';

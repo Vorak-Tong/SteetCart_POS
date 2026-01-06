@@ -4,6 +4,7 @@ import 'package:street_cart_pos/ui/core/utils/number_format.dart';
 import 'package:street_cart_pos/ui/core/widgets/modifier_group_selection.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
 import 'package:street_cart_pos/ui/core/widgets/quantity_stepper.dart';
+import 'package:street_cart_pos/ui/sale/utils/add_to_cart_fly_animation.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/product_selection_viewmodel.dart';
 
 Future<void> openProductSelectionPage(
@@ -124,6 +125,7 @@ class _ProductSelectionViewState extends State<ProductSelectionView> {
     product: widget.product,
   );
   late final TextEditingController _noteController = TextEditingController();
+  final GlobalKey _productImageKey = GlobalKey(debugLabel: 'productImage');
 
   @override
   void dispose() {
@@ -177,9 +179,12 @@ class _ProductSelectionViewState extends State<ProductSelectionView> {
                         children: [
                           SizedBox.square(
                             dimension: 96,
-                            child: ProductImage(
-                              imagePath: product.imagePath,
-                              showPlaceholderLabel: false,
+                            child: KeyedSubtree(
+                              key: _productImageKey,
+                              child: ProductImage(
+                                imagePath: product.imagePath,
+                                showPlaceholderLabel: false,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -333,6 +338,13 @@ class _ProductSelectionViewState extends State<ProductSelectionView> {
                               try {
                                 await _viewModel.addToCart();
                                 if (context.mounted) {
+                                  await playAddToCartFlyAnimation(
+                                    context,
+                                    sourceKey: _productImageKey,
+                                    flightWidget: _cartFlightWidget(product),
+                                  );
+                                }
+                                if (context.mounted) {
                                   Navigator.of(context).pop();
                                 }
                               } catch (e) {
@@ -373,4 +385,17 @@ class _ProductSelectionViewState extends State<ProductSelectionView> {
       },
     );
   }
+}
+
+Widget _cartFlightWidget(Product product) {
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(12),
+    child: SizedBox.square(
+      dimension: 96,
+      child: ProductImage(
+        imagePath: product.imagePath,
+        showPlaceholderLabel: false,
+      ),
+    ),
+  );
 }

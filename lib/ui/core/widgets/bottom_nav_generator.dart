@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/core/widgets/badge_icon.dart';
 import 'package:street_cart_pos/ui/sale/utils/cart_badge_state.dart';
+import 'package:street_cart_pos/ui/sale/utils/add_to_cart_fly_animation.dart';
 
 enum FeatureTabSet { sale, menu }
 
@@ -35,11 +36,14 @@ class BottomNavGenerator extends StatelessWidget {
             label: 'Sale',
           ),
           BottomNavigationBarItem(
-            icon: ValueListenableBuilder<int>(
-              valueListenable: cartItemLineCount,
-              builder: (context, count, _) => BadgeIcon(
-                count: count,
-                child: const Icon(Icons.shopping_cart),
+            icon: SizedBox(
+              key: cartBottomNavIconKey,
+              child: ValueListenableBuilder<int>(
+                valueListenable: cartItemLineCount,
+                builder: (context, count, _) => BadgeIcon(
+                  count: count,
+                  child: const Icon(Icons.shopping_cart),
+                ),
               ),
             ),
             label: 'Cart',
