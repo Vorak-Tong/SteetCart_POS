@@ -55,21 +55,21 @@ class CartBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CartOrderTypeSection(
-            value: viewModel.orderType,
-            onChanged: viewModel.setOrderType,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Cart Items',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
           Expanded(
             child: ListView(
               children: [
+                CartOrderTypeSection(
+                  value: viewModel.orderType,
+                  onChanged: viewModel.setOrderType,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Cart Items',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
                 for (final entry in viewModel.items.indexed) ...[
                   Dismissible(
                     key: ValueKey(entry.$2.id),

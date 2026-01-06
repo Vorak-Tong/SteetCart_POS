@@ -42,3 +42,11 @@ android {
 flutter {
     source = "../.."
 }
+
+// Gradle 8.12 may fail state tracking for this task if it encounters stray or
+// unreadable symbol files under build/ (e.g. "libflutter.so 2.sym").
+// This task output is only used for debugging native crashes and is safe to
+// mark as untracked during development.
+tasks.matching { it.name == "extractReleaseNativeSymbolTables" }.configureEach {
+    doNotTrackState("Workaround for Gradle state tracking of native symbol tables.")
+}
