@@ -6,9 +6,14 @@ import 'package:street_cart_pos/ui/sale/widgets/sale_tab/sale_page.dart';
 
 enum SaleTab { sale, cart, order }
 
-class SaleTabSelector extends StatelessWidget {
+class SaleTabSelector extends StatefulWidget {
   const SaleTabSelector({super.key});
 
+  @override
+  State<SaleTabSelector> createState() => _SaleTabSelectorState();
+}
+
+class _SaleTabSelectorState extends State<SaleTabSelector> {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(

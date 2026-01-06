@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
 import 'package:street_cart_pos/ui/sale/utils/sale_tab_state.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/cart_viewmodel.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_body.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_checkout_bar.dart';
 
 class CartPage extends StatefulWidget {
-  const CartPage({super.key});
+  const CartPage({super.key, this.viewModel});
+
+  final CartViewModel? viewModel;
 
   @override
   State<CartPage> createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  late final CartViewModel _viewModel = CartViewModel();
+  late final CartViewModel _viewModel = widget.viewModel ?? CartViewModel();
   late final TextEditingController _receivedUsdController =
       TextEditingController();
   late final TextEditingController _receivedKhrController =
@@ -75,7 +78,9 @@ class _CartPageState extends State<CartPage> {
   @override
   void dispose() {
     saleTabIndex.removeListener(_onTabIndexChanged);
-    _viewModel.dispose();
+    if (widget.viewModel == null) {
+      _viewModel.dispose();
+    }
     _receivedUsdController.dispose();
     _receivedKhrController.dispose();
     super.dispose();
@@ -87,6 +92,26 @@ class _CartPageState extends State<CartPage> {
       listenable: _viewModel,
       builder: (context, _) {
         const checkoutBarGap = 120.0;
+
+        if (!_viewModel.hasLoadedOnce) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final hasDraftOrder = _viewModel.hasDraftOrder;
+        final hasCart = hasDraftOrder && _viewModel.items.isNotEmpty;
+
+        if (!hasCart) {
+          _clearPaymentInputs();
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: InlineHintCard(
+              alignment: Alignment.center,
+              message: 'Cart is empty. Add items from Sale to start an order.',
+              actionLabel: 'Go to Sale',
+              onAction: () => saleTabIndex.value = 0,
+            ),
+          );
+        }
 
         return Stack(
           children: [
@@ -119,13 +144,6 @@ class _CartPageState extends State<CartPage> {
                 }
               },
             ),
-            if (_viewModel.loading && !_viewModel.hasLoadedOnce)
-              Positioned.fill(
-                child: ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-              ),
           ],
         );
       },

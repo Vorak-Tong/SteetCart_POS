@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_image.dart';
 
 class ReportTopProductsSliver extends StatelessWidget {
   const ReportTopProductsSliver({super.key, required this.products});
@@ -50,7 +50,7 @@ class ReportTopProductsSliver extends StatelessWidget {
                 Icon(
                   Icons.bar_chart,
                   size: 64,
-                  color: colorScheme.outline.withOpacity(0.5),
+                  color: colorScheme.outline.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -148,8 +148,8 @@ class ReportTopProductsSliver extends StatelessWidget {
                           child: LinearProgressIndicator(
                             value: percentage / 100,
                             minHeight: 6,
-                            backgroundColor: colorScheme.surfaceVariant
-                                .withOpacity(0.5),
+                            backgroundColor: colorScheme.surfaceContainerHighest
+                                .withValues(alpha: 0.5),
                             valueColor: AlwaysStoppedAnimation(revenueColor),
                           ),
                         ),
@@ -178,7 +178,7 @@ class _MetricChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(

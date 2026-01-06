@@ -4,7 +4,6 @@ import 'package:street_cart_pos/ui/menu/widgets/category_tab/category_page.dart'
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/menu_page.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_page.dart';
 
-
 enum MenuTab { product, category, modifier }
 
 class MenuTabSelector extends StatelessWidget {

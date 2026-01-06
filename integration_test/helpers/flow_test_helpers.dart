@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_item_card.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_item_card.dart';
 import 'package:street_cart_pos/ui/menu/utils/menu_tab_state.dart';
 import 'package:street_cart_pos/ui/sale/utils/sale_tab_state.dart';
 
@@ -59,7 +59,10 @@ class FlowTestHelpers {
       find.byWidgetPredicate((w) => w is SegmentedButton);
 
   static Finder segmentedButtonLabelText(String label) {
-    return find.descendant(of: anySegmentedButton(), matching: find.text(label));
+    return find.descendant(
+      of: anySegmentedButton(),
+      matching: find.text(label),
+    );
   }
 
   static Future<void> openDrawer(WidgetTester tester) async {
@@ -73,7 +76,9 @@ class FlowTestHelpers {
   static Future<void> goDrawerItem(WidgetTester tester, String label) async {
     await openDrawer(tester);
     await tester.tap(
-      find.descendant(of: find.byType(Drawer), matching: find.text(label)).first,
+      find
+          .descendant(of: find.byType(Drawer), matching: find.text(label))
+          .first,
     );
     await tester.pumpAndSettle();
   }

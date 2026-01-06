@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:street_cart_pos/ui/core/widgets/app_drawer.dart';
+import 'package:street_cart_pos/ui/core/widgets/navigation/app_drawer.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({
@@ -19,9 +19,7 @@ class AppShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: title,
-      ),
+      appBar: AppBar(title: title),
       drawer: AppDrawer(currentRouteName: currentRouteName),
       body: child,
       bottomNavigationBar: bottomNavigationBar,

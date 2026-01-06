@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
 
 class CategoryFormModal extends StatefulWidget {
   const CategoryFormModal({

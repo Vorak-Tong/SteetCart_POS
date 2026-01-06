@@ -6,7 +6,10 @@ class ReportDao {
   // It primarily reads from 'orders' to calculate totals.
 
   // Fetch all raw order rows within a date range
-  Future<List<Map<String, Object?>>> getOrdersInRange(int startEpoch, int endEpoch) async {
+  Future<List<Map<String, Object?>>> getOrdersInRange(
+    int startEpoch,
+    int endEpoch,
+  ) async {
     final db = await AppDatabase.instance();
     return await db.query(
       'orders',

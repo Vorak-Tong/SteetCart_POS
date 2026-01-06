@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:street_cart_pos/domain/models/enums.dart';
-import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/domain/models/order.dart';
 import 'package:street_cart_pos/domain/models/printer_settings.dart';
 import 'package:street_cart_pos/domain/models/store_profile.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';

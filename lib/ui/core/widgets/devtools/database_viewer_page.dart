@@ -121,34 +121,70 @@ class _DatabaseViewerPageState extends State<DatabaseViewerPage> {
           else
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Table: '),
-                  const SizedBox(width: 8),
-                  DropdownButton<String>(
-                    value: _selectedTable,
-                    hint: const Text('Select Table'),
-                    items: _tables
-                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
-                        .toList(),
-                    onChanged: (val) {
-                      if (val != null) _loadTableData(val);
-                    },
+                  Row(
+                    children: [
+                      const Text('Table:'),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _selectedTable,
+                            isExpanded: true,
+                            hint: const Text('Select Table'),
+                            items: _tables
+                                .map(
+                                  (t) => DropdownMenuItem(
+                                    value: t,
+                                    child: Text(
+                                      t,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (val) {
+                              if (val != null) _loadTableData(val);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    onPressed: _isLoading ? null : _seedDemoData,
-                    icon: const Icon(Icons.auto_fix_high),
-                    label: const Text('Seed 50 days'),
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    onPressed: () {
-                      if (_selectedTable != null) {
-                        _loadTableData(_selectedTable!);
-                      }
-                    },
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Tooltip(
+                            message:
+                                'Reset DB and seed menu + 50 days of served orders',
+                            child: TextButton.icon(
+                              onPressed: _isLoading ? null : _seedDemoData,
+                              icon: const Icon(Icons.auto_fix_high),
+                              label: const Text(
+                                'Seed 50 days',
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Tooltip(
+                        message: 'Refresh table',
+                        child: IconButton(
+                          icon: const Icon(Icons.refresh),
+                          onPressed: () {
+                            if (_selectedTable != null) {
+                              _loadTableData(_selectedTable!);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

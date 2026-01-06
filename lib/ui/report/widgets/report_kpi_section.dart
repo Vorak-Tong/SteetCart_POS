@@ -38,7 +38,7 @@ class ReportKpiSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.primary.withOpacity(0.3),
+                color: colorScheme.primary.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 6),
               ),
@@ -51,14 +51,14 @@ class ReportKpiSection extends StatelessWidget {
                 children: [
                   Icon(
                     Icons.attach_money,
-                    color: colorScheme.onPrimary.withOpacity(0.9),
+                    color: colorScheme.onPrimary.withValues(alpha: 0.9),
                     size: 24,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Total Revenue',
                     style: theme.textTheme.titleMedium?.copyWith(
-                      color: colorScheme.onPrimary.withOpacity(0.9),
+                      color: colorScheme.onPrimary.withValues(alpha: 0.9),
                     ),
                   ),
                   if (onRefresh != null) ...[
@@ -68,7 +68,7 @@ class ReportKpiSection extends StatelessWidget {
                       onPressed: refreshing ? null : onRefresh,
                       icon: Icon(
                         Icons.refresh_outlined,
-                        color: colorScheme.onPrimary.withOpacity(0.9),
+                        color: colorScheme.onPrimary.withValues(alpha: 0.9),
                       ),
                       visualDensity: VisualDensity.compact,
                     ),
@@ -141,7 +141,7 @@ class _ReportSummaryCard extends StatelessWidget {
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
       ),
       child: Column(

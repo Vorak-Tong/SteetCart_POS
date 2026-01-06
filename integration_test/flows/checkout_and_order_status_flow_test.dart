@@ -62,7 +62,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byKey(const ValueKey('cart_received_khr')), '1000000');
+      await tester.enterText(
+        find.byKey(const ValueKey('cart_received_khr')),
+        '1000000',
+      );
       await tester.pumpAndSettle();
 
       // Checkout (should switch to Orders tab).

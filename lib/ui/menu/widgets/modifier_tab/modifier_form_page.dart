@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
-import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
+import 'package:street_cart_pos/domain/models/modifier_enums.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/modifier_option.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/dashed_border_painter.dart';
+import 'package:uuid/uuid.dart';
 
 class ModifierFormPage extends StatefulWidget {
   const ModifierFormPage({super.key, required this.onSave, this.initialGroup});
@@ -15,6 +18,8 @@ class ModifierFormPage extends StatefulWidget {
 }
 
 class _ModifierFormPageState extends State<ModifierFormPage> {
+  static const _uuid = Uuid();
+
   final _groupNameController = TextEditingController();
   String? _priceBehavior;
   String? _selectionType;
@@ -87,7 +92,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
   void _addOption() {
     if (!_canAddOption) return;
     setState(() {
-      _optionControllers.add(_ModifierOptionController(id: uuid.v4()));
+      _optionControllers.add(_ModifierOptionController(id: _uuid.v4()));
     });
   }
 
@@ -180,7 +185,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
               width: 357,
               height: 44,
               child: DropdownButtonFormField<String>(
-                value: _priceBehavior,
+                initialValue: _priceBehavior,
                 dropdownColor: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 hint: const Text(
@@ -230,7 +235,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
               width: 357,
               height: 44,
               child: DropdownButtonFormField<String>(
-                value: _selectionType,
+                initialValue: _selectionType,
                 dropdownColor: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 hint: const Text(
@@ -281,109 +286,117 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
             ),
             const SizedBox(height: 12),
 
-            // None Option
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'None',
-                  style: TextStyle(fontSize: 14, color: Colors.black),
-                ),
-                Radio<int>(
-                  value: -1,
-                  groupValue: _defaultSelectionIndex,
-                  activeColor: const Color(0xFF5EAF41),
-                  onChanged: (val) =>
-                      setState(() => _defaultSelectionIndex = val!),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Dynamic Options List
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _optionControllers.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                return Row(
-                  children: [
-                    // X Button
-                    GestureDetector(
-                      onTap: () => _removeOption(index),
-                      child: const Padding(
-                        padding: EdgeInsets.only(right: 8.0),
-                        child: Icon(Icons.close, color: Colors.black, size: 20),
+            RadioGroup<int>(
+              groupValue: _defaultSelectionIndex,
+              onChanged: (val) =>
+                  setState(() => _defaultSelectionIndex = val ?? -1),
+              child: Column(
+                children: [
+                  // None Option
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: const [
+                      Text(
+                        'None',
+                        style: TextStyle(fontSize: 14, color: Colors.black),
                       ),
-                    ),
-                    // Option Label
-                    Expanded(
-                      child: SizedBox(
-                        height: 44,
-                        child: TextField(
-                          controller: _optionControllers[index].label,
-                          maxLength: ModifierOptions.nameMax,
-                          decoration: InputDecoration(
-                            hintText: 'Option Label',
-                            hintStyle: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFFCBCBCB),
-                            ),
-                            counterText: '',
-                            filled: true,
-                            fillColor: const Color(0xFFF7F7F7),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_hasPriceChange) ...[
-                      const SizedBox(width: 8),
-                      // Price Field
-                      SizedBox(
-                        width: 85,
-                        height: 44,
-                        child: TextField(
-                          controller: _optionControllers[index].price,
-                          decoration: InputDecoration(
-                            hintText: '+ \$ 0.00',
-                            hintStyle: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFFCBCBCB),
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF7F7F7),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                            ),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
+                      Radio<int>(
+                        value: -1,
+                        activeColor: Color(0xFF5EAF41),
                       ),
                     ],
-                    const SizedBox(width: 8),
-                    // Default Radio
-                    Radio<int>(
-                      value: index,
-                      groupValue: _defaultSelectionIndex,
-                      activeColor: const Color(0xFF5EAF41),
-                      onChanged: (val) =>
-                          setState(() => _defaultSelectionIndex = val!),
-                    ),
-                  ],
-                );
-              },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Dynamic Options List
+                  ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _optionControllers.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      return Row(
+                        children: [
+                          // X Button
+                          GestureDetector(
+                            onTap: () => _removeOption(index),
+                            child: const Padding(
+                              padding: EdgeInsets.only(right: 8.0),
+                              child: Icon(
+                                Icons.close,
+                                color: Colors.black,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                          // Option Label
+                          Expanded(
+                            child: SizedBox(
+                              height: 44,
+                              child: TextField(
+                                controller: _optionControllers[index].label,
+                                maxLength: ModifierOptions.nameMax,
+                                decoration: InputDecoration(
+                                  hintText: 'Option Label',
+                                  hintStyle: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFFCBCBCB),
+                                  ),
+                                  counterText: '',
+                                  filled: true,
+                                  fillColor: const Color(0xFFF7F7F7),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_hasPriceChange) ...[
+                            const SizedBox(width: 8),
+                            // Price Field
+                            SizedBox(
+                              width: 85,
+                              height: 44,
+                              child: TextField(
+                                controller: _optionControllers[index].price,
+                                decoration: InputDecoration(
+                                  hintText: '+ \$ 0.00',
+                                  hintStyle: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFFCBCBCB),
+                                  ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF7F7F7),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(width: 8),
+                          // Default Radio
+                          Radio<int>(
+                            value: index,
+                            activeColor: const Color(0xFF5EAF41),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -447,7 +460,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                         for (final controller in _optionControllers) {
                           final label = controller.label.text.trim();
                           if (label.isEmpty) {
-                            if (!mounted) return;
+                            if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Option label cannot be empty.'),
@@ -464,7 +477,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                             } else {
                               final parsed = double.tryParse(raw);
                               if (parsed == null) {
-                                if (!mounted) return;
+                                if (!context.mounted) return;
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Invalid option price.'),
@@ -489,7 +502,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
 
                         final selectionType = _selectionTypeValue();
                         final group = ModifierGroup(
-                          id: widget.initialGroup?.id ?? uuid.v4(),
+                          id: widget.initialGroup?.id ?? _uuid.v4(),
                           name: name,
                           selectionType: selectionType,
                           priceBehavior: _priceBehaviorValue(),
@@ -508,12 +521,12 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
                             Navigator.pop(context);
                           }
                         } catch (e) {
-                          if (!mounted) return;
+                          if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Failed to save: $e')),
                           );
                         } finally {
-                          if (mounted) setState(() => _saving = false);
+                          if (context.mounted) setState(() => _saving = false);
                         }
                       },
                 style: FilledButton.styleFrom(

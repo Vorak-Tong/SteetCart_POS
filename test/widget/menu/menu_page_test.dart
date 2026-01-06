@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/menu_page.dart';
-import '../../helpers/database_test_helper.dart';
+import '../../helpers/fake_menu_repository.dart';
 
 void main() {
-  setupDatabaseTests();
-
   setUp(() async {
-    await MenuRepository().reset();
+    MenuRepository.setInstance(FakeMenuRepository());
     final repo = MenuRepository();
+    await repo.reset();
 
     // Seed Categories
     await repo.addCategory(Category(name: 'Coffee'));
@@ -20,21 +20,27 @@ void main() {
     final matcha = repo.categories.firstWhere((c) => c.name == 'Matcha');
 
     // Seed Products
-    await repo.addProduct(Product(name: 'Iced Latte', basePrice: 2.5, category: coffee));
-    await repo.addProduct(Product(name: 'Cappuccino', basePrice: 3.0, category: coffee));
-    await repo.addProduct(Product(name: 'Green Tea Latte', basePrice: 3.5, category: matcha));
+    await repo.addProduct(
+      Product(name: 'Iced Latte', basePrice: 2.5, category: coffee),
+    );
+    await repo.addProduct(
+      Product(name: 'Cappuccino', basePrice: 3.0, category: coffee),
+    );
+    await repo.addProduct(
+      Product(name: 'Green Tea Latte', basePrice: 3.5, category: matcha),
+    );
   });
 
-  testWidgets('MenuPage filters products by category and search query', (WidgetTester tester) async {
+  testWidgets('MenuPage filters products by category and search query', (
+    WidgetTester tester,
+  ) async {
     // Wrap in MaterialApp because MenuPage uses Navigator and Theme
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: MenuPage(),
-      ),
-    ));
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: MenuPage())),
+    );
 
-    // Wait for animations/rendering
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
 
     // 1. Verify Initial State (All items visible)
     // Mock data: Iced Latte (Coffee), Cappuccino (Coffee), Green Tea Latte (Matcha)
@@ -49,7 +55,8 @@ void main() {
 
     // Tap it
     await tester.tap(coffeeChip);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
 
     // Verify: Only Coffee items visible
     expect(find.text('Iced Latte'), findsAtLeastNWidgets(1));
@@ -63,7 +70,8 @@ void main() {
 
     // Enter text
     await tester.enterText(searchField, 'Latte');
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
 
     // Verify: Only "Iced Latte" visible (Coffee AND Latte)
     // "Cappuccino" (Coffee but no Latte) -> Hidden
@@ -75,7 +83,8 @@ void main() {
     // 4. Reset Category to All (Search "Latte" still active)
     final allChip = find.widgetWithText(ChoiceChip, 'All');
     await tester.tap(allChip);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
 
     // Verify: "Iced Latte" and "Green Tea Latte" visible
     expect(find.text('Iced Latte'), findsAtLeastNWidgets(1));

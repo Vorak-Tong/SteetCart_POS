@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/ui/core/widgets/category_filter_chips.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_grid.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_search_bar.dart';
+import 'package:go_router/go_router.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/category_filter_chips.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_grid.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_search_bar.dart';
+import 'package:street_cart_pos/ui/menu/utils/menu_tab_state.dart';
 import 'package:street_cart_pos/ui/sale/widgets/sale_tab/product_selection_sheet.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/sale_viewmodel.dart';
 
 class SalePage extends StatefulWidget {
-  const SalePage({super.key});
+  const SalePage({super.key, this.viewModel});
+
+  final SaleViewModel? viewModel;
 
   @override
   State<SalePage> createState() => _SalePageState();
 }
 
 class _SalePageState extends State<SalePage> {
-  late final SaleViewModel _viewModel = SaleViewModel();
+  late final SaleViewModel _viewModel = widget.viewModel ?? SaleViewModel();
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    if (widget.viewModel == null) {
+      _viewModel.dispose();
+    }
     super.dispose();
   }
 
@@ -58,11 +65,21 @@ class _SalePageState extends State<SalePage> {
               ),
               const SizedBox(height: 12),
               Expanded(
-                child: ProductGrid(
-                  products: _viewModel.filteredProducts,
-                  onProductTap: (product) =>
-                      showProductSelectionSheet(context, product: product),
-                ),
+                child: _viewModel.products.isEmpty
+                    ? InlineHintCard(
+                        message:
+                            'No products yet. Create products in Menu to start selling.',
+                        actionLabel: 'Open Menu',
+                        onAction: () {
+                          menuTabIndex.value = 0;
+                          context.go('/menu');
+                        },
+                      )
+                    : ProductGrid(
+                        products: _viewModel.filteredProducts,
+                        onProductTap: (product) =>
+                            openProductSelectionPage(context, product: product),
+                      ),
               ),
             ],
           ),

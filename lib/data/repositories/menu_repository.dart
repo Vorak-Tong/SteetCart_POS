@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart' show ChangeNotifier, visibleForTesting;
 import 'package:street_cart_pos/data/repositories/category_repository.dart';
 import 'package:street_cart_pos/data/repositories/modifier_repository.dart';
 import 'package:street_cart_pos/data/repositories/product_repository.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 
 class MenuRepository extends ChangeNotifier {
   static MenuRepository _instance = MenuRepository._internal();

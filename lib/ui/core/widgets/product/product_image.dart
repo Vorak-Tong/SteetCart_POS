@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/core/utils/local_file_image.dart';
-import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/dashed_border_painter.dart';
+
+String productSelectionHeroTag(String productId) =>
+    'product-selection-$productId';
 
 class ProductImage extends StatelessWidget {
   const ProductImage({

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_image.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_form_page.dart';
 
 class ProductDetailPage extends StatelessWidget {

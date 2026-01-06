@@ -1,5 +1,9 @@
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
+import 'package:street_cart_pos/domain/models/modifier_enums.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/modifier_option.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:uuid/uuid.dart';
 
 Future<void> seedMenuForSaleFlows() async {
@@ -60,4 +64,3 @@ Future<void> seedMenuForSaleFlows() async {
   await repo.addProduct(icedLatte);
   await repo.addProduct(icedMatcha);
 }
-

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
-import 'package:street_cart_pos/ui/core/widgets/add_new_button.dart';
-import 'package:street_cart_pos/ui/core/widgets/category_filter_chips.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_search_bar.dart';
-import 'package:street_cart_pos/ui/core/widgets/swipe_action_background.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/add_new_button.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/category_filter_chips.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_search_bar.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/menu_item_card.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_detail_page.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_form_page.dart';
@@ -60,17 +62,7 @@ class _MenuPageState extends State<MenuPage> {
                   const SizedBox(width: 12),
                   AddNewButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductFormPage(
-                            isEditing: false,
-                            categories: _viewModel.categories,
-                            availableModifiers: _viewModel.modifierGroups,
-                            onSave: _viewModel.addProduct,
-                          ),
-                        ),
-                      );
+                      _openCreateProduct(context);
                     },
                   ),
                 ],
@@ -99,132 +91,157 @@ class _MenuPageState extends State<MenuPage> {
 
               // Product List
               Expanded(
-                child: ListView.separated(
-                  itemCount: _viewModel.filteredProducts.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final product = _viewModel.filteredProducts[index];
-                    final canArchive = product.isActive;
-                    final leftLabel = canArchive ? 'Archive' : 'Unarchive';
-                    final leftIcon = canArchive
-                        ? Icons.archive_outlined
-                        : Icons.unarchive_outlined;
-                    return Dismissible(
-                      key: ValueKey(product.id),
-                      direction: DismissDirection.horizontal,
-                      background: SwipeActionBackground(
-                        alignment: Alignment.centerLeft,
-                        backgroundColor: const Color(0xFFE9F7EC),
-                        borderRadius: 10,
-                        icon: leftIcon,
-                        iconColor: const Color(0xFF2E7D32),
-                        label: leftLabel,
-                      ),
-                      secondaryBackground: const SwipeActionBackground(
-                        alignment: Alignment.centerRight,
-                        backgroundColor: Color(0xFFFFEBEB),
-                        borderRadius: 10,
-                        icon: Icons.delete_outline,
-                        iconColor: Colors.red,
-                        label: 'Delete',
-                      ),
-                      confirmDismiss: (direction) async {
-                        if (direction == DismissDirection.startToEnd &&
-                            product.isActive) {
-                          return await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Archive product?'),
-                                  content: const Text(
-                                    'This will hide the product from active lists. You can restore it later from Archived.',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: const Text('Archive'),
-                                    ),
-                                  ],
-                                ),
-                              ) ??
-                              false;
-                        }
-                        if (direction == DismissDirection.endToStart) {
-                          return await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Delete product?'),
-                                  content: const Text(
-                                    'This will permanently delete the product. Existing sales will keep a snapshot of the product name/price.',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: const Text('Delete'),
-                                    ),
-                                  ],
-                                ),
-                              ) ??
-                              false;
-                        }
-                        return true;
-                      },
-                      onDismissed: (direction) async {
-                        try {
-                          if (direction == DismissDirection.startToEnd) {
-                            if (product.isActive) {
-                              await _viewModel.archiveProduct(product);
-                            } else {
-                              await _viewModel.unarchiveProduct(product);
-                            }
-                          } else if (direction == DismissDirection.endToStart) {
-                            await _viewModel.deleteProduct(product);
-                          }
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Action failed: $e'),
-                              backgroundColor: Colors.red,
+                child: _viewModel.products.isEmpty
+                    ? InlineHintCard(
+                        message:
+                            'No products yet. Tap Add New to create your first product.',
+                        actionLabel: 'Create',
+                        onAction: () => _openCreateProduct(context),
+                      )
+                    : ListView.separated(
+                        itemCount: _viewModel.filteredProducts.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final product = _viewModel.filteredProducts[index];
+                          final canArchive = product.isActive;
+                          final leftLabel = canArchive
+                              ? 'Archive'
+                              : 'Unarchive';
+                          final leftIcon = canArchive
+                              ? Icons.archive_outlined
+                              : Icons.unarchive_outlined;
+                          return Dismissible(
+                            key: ValueKey(product.id),
+                            direction: DismissDirection.horizontal,
+                            background: SwipeActionBackground(
+                              alignment: Alignment.centerLeft,
+                              backgroundColor: const Color(0xFFE9F7EC),
+                              borderRadius: 10,
+                              icon: leftIcon,
+                              iconColor: const Color(0xFF2E7D32),
+                              label: leftLabel,
                             ),
-                          );
-                        }
-                      },
-                      child: MenuItemCard(
-                        product: product,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProductDetailPage(
-                                product: product,
-                                categories: _viewModel.categories,
-                                availableModifiers: _viewModel.modifierGroups,
-                                onUpdate: _viewModel.updateProduct,
-                              ),
+                            secondaryBackground: const SwipeActionBackground(
+                              alignment: Alignment.centerRight,
+                              backgroundColor: Color(0xFFFFEBEB),
+                              borderRadius: 10,
+                              icon: Icons.delete_outline,
+                              iconColor: Colors.red,
+                              label: 'Delete',
+                            ),
+                            confirmDismiss: (direction) async {
+                              if (direction == DismissDirection.startToEnd &&
+                                  product.isActive) {
+                                return await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Archive product?'),
+                                        content: const Text(
+                                          'This will hide the product from active lists. You can restore it later from Archived.',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text('Archive'),
+                                          ),
+                                        ],
+                                      ),
+                                    ) ??
+                                    false;
+                              }
+                              if (direction == DismissDirection.endToStart) {
+                                return await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        title: const Text('Delete product?'),
+                                        content: const Text(
+                                          'This will permanently delete the product. Existing sales will keep a snapshot of the product name/price.',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text('Cancel'),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text('Delete'),
+                                          ),
+                                        ],
+                                      ),
+                                    ) ??
+                                    false;
+                              }
+                              return true;
+                            },
+                            onDismissed: (direction) async {
+                              try {
+                                if (direction == DismissDirection.startToEnd) {
+                                  if (product.isActive) {
+                                    await _viewModel.archiveProduct(product);
+                                  } else {
+                                    await _viewModel.unarchiveProduct(product);
+                                  }
+                                } else if (direction ==
+                                    DismissDirection.endToStart) {
+                                  await _viewModel.deleteProduct(product);
+                                }
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Action failed: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            child: MenuItemCard(
+                              product: product,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProductDetailPage(
+                                      product: product,
+                                      categories: _viewModel.categories,
+                                      availableModifiers:
+                                          _viewModel.modifierGroups,
+                                      onUpdate: _viewModel.updateProduct,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           );
                         },
                       ),
-                    );
-                  },
-                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  void _openCreateProduct(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductFormPage(
+          isEditing: false,
+          categories: _viewModel.categories,
+          availableModifiers: _viewModel.modifierGroups,
+          onSave: _viewModel.addProduct,
+        ),
+      ),
     );
   }
 }

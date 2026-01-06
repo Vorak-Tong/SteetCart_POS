@@ -23,11 +23,11 @@ class OrderStatusEditSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final surface = theme.colorScheme.surface;
     final evenBg = Color.alphaBlend(
-      theme.colorScheme.onSurface.withOpacity(0.02),
+      theme.colorScheme.onSurface.withValues(alpha: 0.02),
       surface,
     );
     final oddBg = Color.alphaBlend(
-      theme.colorScheme.onSurface.withOpacity(0.05),
+      theme.colorScheme.onSurface.withValues(alpha: 0.05),
       surface,
     );
     return Padding(

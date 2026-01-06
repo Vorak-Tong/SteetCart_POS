@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/modifier_viewmodel.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/modifier_option.dart';
 import '../../../helpers/fake_menu_repository.dart';
 import 'package:uuid/uuid.dart';
 

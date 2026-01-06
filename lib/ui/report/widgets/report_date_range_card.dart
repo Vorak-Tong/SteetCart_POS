@@ -21,7 +21,7 @@ class ReportDateRangeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: colorScheme.outline.withOpacity(0.5)),
+          border: Border.all(color: colorScheme.outline.withValues(alpha: 0.5)),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
