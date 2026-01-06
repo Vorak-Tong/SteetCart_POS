@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/ui/core/widgets/badge_icon.dart';
+import 'package:street_cart_pos/ui/sale/utils/cart_badge_state.dart';
 
 enum FeatureTabSet { sale, menu }
 
@@ -27,16 +29,22 @@ class BottomNavGenerator extends StatelessWidget {
   List<BottomNavigationBarItem> _itemsFor(FeatureTabSet tabSet) {
     switch (tabSet) {
       case FeatureTabSet.sale:
-        return const [
-          BottomNavigationBarItem(
+        return [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.point_of_sale),
             label: 'Sale',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+            icon: ValueListenableBuilder<int>(
+              valueListenable: cartItemLineCount,
+              builder: (context, count, _) => BadgeIcon(
+                count: count,
+                child: const Icon(Icons.shopping_cart),
+              ),
+            ),
             label: 'Cart',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long),
             label: 'Order',
           ),

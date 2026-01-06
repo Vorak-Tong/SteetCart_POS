@@ -13,6 +13,7 @@ import 'package:street_cart_pos/domain/models/payment.dart';
 import 'package:street_cart_pos/domain/models/sale_policy.dart';
 import 'package:street_cart_pos/ui/core/printing/bluetooth_printer_service.dart';
 import 'package:street_cart_pos/ui/core/printing/receipt_escpos_builder.dart';
+import 'package:street_cart_pos/ui/sale/utils/cart_badge_state.dart';
 import 'package:street_cart_pos/utils/command.dart';
 
 class CartViewModel extends ChangeNotifier {
@@ -139,6 +140,8 @@ class CartViewModel extends ChangeNotifier {
     _draftOrder = await _cartRepository.getDraftOrder();
     _policy = await _salePolicyRepository.getSalePolicy();
 
+    setCartItemLineCount(_draftOrder?.orderProducts.length ?? 0);
+
     if (_draftOrder != null) {
       _pendingOrderType = _draftOrder!.orderType;
       _pendingPaymentMethod = _draftOrder!.paymentType;
@@ -202,6 +205,7 @@ class CartViewModel extends ChangeNotifier {
     );
 
     _draftOrder = null;
+    setCartItemLineCount(0);
     _receivedUsd = null;
     _receivedKhr = null;
     _receivedUsdError = null;
@@ -387,6 +391,7 @@ class CartViewModel extends ChangeNotifier {
 
     await _cartRepository.deleteDraftOrder();
     _draftOrder = null;
+    setCartItemLineCount(0);
 
     _receivedUsd = null;
     _receivedKhr = null;

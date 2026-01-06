@@ -4,6 +4,7 @@ import 'package:street_cart_pos/domain/models/order_modifier_selection.dart';
 import 'package:street_cart_pos/domain/models/modifier_enums.dart';
 import 'package:street_cart_pos/domain/models/modifier_group.dart';
 import 'package:street_cart_pos/domain/models/product.dart';
+import 'package:street_cart_pos/ui/sale/utils/cart_badge_state.dart';
 import 'package:street_cart_pos/utils/command.dart';
 
 class ProductSelectionViewModel extends ChangeNotifier {
@@ -91,6 +92,8 @@ class ProductSelectionViewModel extends ChangeNotifier {
       modifierSelections: modifierSelectionsSummary,
       note: _note,
     );
+
+    setCartItemLineCount(cartItemLineCount.value + 1);
   }
 
   void setNote(String note) {
