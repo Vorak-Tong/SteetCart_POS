@@ -8,6 +8,8 @@ enum ModifierPriceBehavior { fixed, none }
 
 // Category Class
 class Category {
+  static const int nameMax = 15;
+
   final String id;
   final String name;
 
@@ -16,6 +18,8 @@ class Category {
 
 // Modifiers
 class ModifierOptions {
+  static const int nameMax = 20;
+
   final String id;
   final String name;
   final double? price;
@@ -30,6 +34,9 @@ class ModifierOptions {
 }
 
 class ModifierGroup {
+  static const int nameMax = 20;
+  static const int maxOptionsPerGroup = 10;
+
   final String id;
   final String name;
   final ModifierSelectionType selectionType;
@@ -52,6 +59,9 @@ class ModifierGroup {
 
 // 3. Product
 class Product {
+  static const int nameMax = 20;
+  static const int descriptionMax = 80;
+
   final String id;
   final String name;
   final String? description;

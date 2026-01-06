@@ -1,33 +1,59 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:street_cart_pos/data/repositories/order_repository.dart';
+import 'package:street_cart_pos/data/repositories/sale_policy_repository.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
 import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/domain/models/sale_policy.dart';
+import 'package:street_cart_pos/utils/command.dart';
 
 class CartViewModel extends ChangeNotifier {
-  CartViewModel({OrderRepository? orderRepository})
-    : _orderRepository = orderRepository ?? OrderRepository() {
-    refreshFromDb();
+  CartViewModel({
+    OrderRepository? orderRepository,
+    SalePolicyRepository? salePolicyRepository,
+  }) : _orderRepository = orderRepository ?? OrderRepository(),
+       _salePolicyRepository =
+           salePolicyRepository ?? SalePolicyRepositoryImpl() {
+    loadCartCommand = CommandWithParam((_) => _loadCart());
+    checkoutCommand = CommandWithParam((_) => _checkout());
+    clearCartCommand = CommandWithParam((_) => _clearCart());
+
+    loadCartCommand.addListener(notifyListeners);
+    checkoutCommand.addListener(notifyListeners);
+    clearCartCommand.addListener(notifyListeners);
+
+    loadCartCommand.execute(null);
   }
 
   final OrderRepository _orderRepository;
+  final SalePolicyRepository _salePolicyRepository;
 
-  static const double vatRate = 0.10;
-  static const int exchangeRateKhrPerUsd = 4000;
+  SalePolicy _policy = const SalePolicy(vat: 0, exchangeRate: 4000);
+
+  late final CommandWithParam<void, void> loadCartCommand;
+  late final CommandWithParam<void, void> checkoutCommand;
+  late final CommandWithParam<void, void> clearCartCommand;
+
+  double get vatRate => (_policy.vat.clamp(0, 100)) / 100.0;
+  int get exchangeRateKhrPerUsd =>
+      _policy.exchangeRate.round().clamp(1, 1000000);
+  RoundingMode get roundingMode => _policy.roundingMode;
 
   Order? _draftOrder;
-  bool _loading = false;
-  bool _checkingOut = false;
 
   OrderType _pendingOrderType = OrderType.dineIn;
   PaymentMethod _pendingPaymentMethod = PaymentMethod.cash;
+
+  bool _hasLoadedOnce = false;
 
   double? _receivedUsd;
   int? _receivedKhr;
   String? _receivedUsdError;
   String? _receivedKhrError;
 
-  bool get loading => _loading;
-  bool get checkingOut => _checkingOut;
+  bool get loading => loadCartCommand.running;
+  bool get checkingOut => checkoutCommand.running;
+  bool get clearingCart => clearCartCommand.running;
+  bool get hasLoadedOnce => _hasLoadedOnce;
 
   Order? get draftOrder => _draftOrder;
   bool get hasDraftOrder => _draftOrder != null;
@@ -43,11 +69,11 @@ class CartViewModel extends ChangeNotifier {
   String? get receivedKhrError => _receivedKhrError;
 
   double get subtotal =>
-      items.fold(0.0, (sum, item) => sum + item.getLineTotal());
-  int get vatPercent => (vatRate * 100).round();
-  double get vat => subtotal * vatRate;
-  double get grandTotalUsd => subtotal + vat;
-  int get grandTotalKhr => (grandTotalUsd * exchangeRateKhrPerUsd).round();
+      _roundUsd(items.fold(0.0, (sum, item) => sum + item.getLineTotal()));
+  int get vatPercent => _policy.vat.round().clamp(0, 100);
+  double get vat => _roundUsd(subtotal * vatRate);
+  double get grandTotalUsd => _roundUsd(subtotal + vat);
+  int get grandTotalKhr => _toKhr(grandTotalUsd);
 
   bool get _hasValidReceivedUsd =>
       _receivedUsd != null && _receivedUsdError == null;
@@ -69,37 +95,40 @@ class CartViewModel extends ChangeNotifier {
       return null;
     }
     if (_hasValidReceivedUsd) {
-      final changeUsd = _receivedUsd! - grandTotalUsd;
-      return (changeUsd * exchangeRateKhrPerUsd).round();
+      final changeUsd = _roundUsd(_receivedUsd! - grandTotalUsd);
+      return _toKhr(changeUsd);
     }
     return _receivedKhr! - grandTotalKhr;
   }
 
   bool get canCheckout =>
-      !_loading && !_checkingOut && items.isNotEmpty && hasSufficientPayment;
+      !loading &&
+      !checkingOut &&
+      !clearingCart &&
+      items.isNotEmpty &&
+      hasSufficientPayment;
 
-  Future<void> refreshFromDb() async {
-    if (_loading) {
-      return;
+  Future<void> refreshFromDb() => loadCartCommand.execute(null);
+
+  Future<void> checkout() => checkoutCommand.execute(null);
+
+  Future<void> _loadCart() async {
+    final results = await Future.wait<Object?>([
+      _orderRepository.getDraftOrder(),
+      _salePolicyRepository.getSalePolicy(),
+    ]);
+    _draftOrder = results[0] as Order?;
+    _policy = results[1] as SalePolicy;
+
+    if (_draftOrder != null) {
+      _pendingOrderType = _draftOrder!.orderType;
+      _pendingPaymentMethod = _draftOrder!.paymentType;
     }
-
-    _loading = true;
+    _hasLoadedOnce = true;
     notifyListeners();
-
-    try {
-      _draftOrder = await _orderRepository.getDraftOrder();
-
-      if (_draftOrder != null) {
-        _pendingOrderType = _draftOrder!.orderType;
-        _pendingPaymentMethod = _draftOrder!.paymentType;
-      }
-    } finally {
-      _loading = false;
-      notifyListeners();
-    }
   }
 
-  Future<void> checkout() async {
+  Future<void> _checkout() async {
     final order = _draftOrder;
     if (order == null) {
       return;
@@ -108,17 +137,18 @@ class CartViewModel extends ChangeNotifier {
       return;
     }
 
-    _checkingOut = true;
-    notifyListeners();
-
     try {
       final receiveUsd = _hasValidReceivedUsd ? _receivedUsd! : 0.0;
       final receiveKhr = _hasValidReceivedKhr ? _receivedKhr! : 0;
 
-      final changeUsd = receiveUsd > 0 ? (receiveUsd - grandTotalUsd) : 0.0;
+      final changeUsd = () {
+        if (receiveUsd <= 0) return 0.0;
+        final candidate = _roundUsd(receiveUsd - grandTotalUsd);
+        return candidate < 0 ? 0.0 : candidate;
+      }();
       final changeKhr = (receiveKhr > 0)
           ? (receiveKhr - grandTotalKhr)
-          : (changeUsd * exchangeRateKhrPerUsd).round();
+          : _toKhr(changeUsd);
 
       final payment = Payment(
         type: paymentMethod,
@@ -133,6 +163,9 @@ class CartViewModel extends ChangeNotifier {
         orderType: order.orderType,
         paymentType: order.paymentType,
         payment: payment,
+        vatPercentApplied: vatPercent,
+        usdToKhrRateApplied: exchangeRateKhrPerUsd,
+        roundingModeApplied: roundingMode,
       );
 
       _draftOrder = null;
@@ -140,10 +173,8 @@ class CartViewModel extends ChangeNotifier {
       _receivedKhr = null;
       _receivedUsdError = null;
       _receivedKhrError = null;
-    } finally {
-      _checkingOut = false;
       notifyListeners();
-    }
+    } finally {}
   }
 
   void setOrderType(OrderType type) {
@@ -259,6 +290,10 @@ class CartViewModel extends ChangeNotifier {
   }
 
   Future<void> clearCart() async {
+    await clearCartCommand.execute(null);
+  }
+
+  Future<void> _clearCart() async {
     if (!hasDraftOrder) {
       return;
     }
@@ -307,5 +342,23 @@ class CartViewModel extends ChangeNotifier {
     _orderRepository
         .updateOrderItemQuantity(orderItemId, quantity: nextQuantity)
         .catchError((_) => refreshFromDb());
+  }
+
+  int _toKhr(double usdAmount) {
+    final value = _roundUsd(usdAmount) * exchangeRateKhrPerUsd;
+    return switch (roundingMode) {
+      RoundingMode.roundUp => value.ceil(),
+      RoundingMode.roundDown => value.floor(),
+    };
+  }
+
+  double _roundUsd(double value) => (value * 100).roundToDouble() / 100;
+
+  @override
+  void dispose() {
+    loadCartCommand.removeListener(notifyListeners);
+    checkoutCommand.removeListener(notifyListeners);
+    clearCartCommand.removeListener(notifyListeners);
+    super.dispose();
   }
 }

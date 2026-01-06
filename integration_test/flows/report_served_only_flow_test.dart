@@ -6,10 +6,10 @@ import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
 import 'package:street_cart_pos/data/local/seed/demo_business_seed.dart';
+import 'package:street_cart_pos/domain/models/report_model.dart';
 import 'package:street_cart_pos/main.dart' as app;
 import 'package:street_cart_pos/ui/report/widgets/report_date_range_card.dart';
 import 'package:street_cart_pos/ui/report/widgets/report_kpi_section.dart';
-import 'package:street_cart_pos/domain/validation/report_date_limits.dart';
 
 import '../helpers/flow_test_helpers.dart';
 
@@ -148,8 +148,8 @@ void main() {
 
       // Expand the range forward (safe even if today's date is clamped to the
       // earliest allowed date).
-      final startDate = ReportDateLimits.clamp(todayStart);
-      final endDate = ReportDateLimits.clamp(
+      final startDate = Report.clampDate(todayStart);
+      final endDate = Report.clampDate(
         todayStart.add(const Duration(days: 14)),
       );
 

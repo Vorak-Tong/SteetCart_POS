@@ -26,6 +26,35 @@ class OrderItemDao {
     );
   }
 
+  Future<List<Map<String, Object?>>> getByOrderIds(
+    List<String> orderIds,
+  ) async {
+    if (orderIds.isEmpty) {
+      return const [];
+    }
+
+    final db = await AppDatabase.instance();
+
+    final results = <Map<String, Object?>>[];
+    const maxArgs = 999;
+    for (var start = 0; start < orderIds.length; start += maxArgs) {
+      final chunk = orderIds.sublist(
+        start,
+        (start + maxArgs).clamp(0, orderIds.length),
+      );
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      results.addAll(
+        await db.query(
+          tableName,
+          where: '$colOrderId IN ($placeholders)',
+          whereArgs: chunk,
+        ),
+      );
+    }
+
+    return results;
+  }
+
   // Insert a single item (usually part of a batch/transaction)
   Future<int> insert(Map<String, Object?> data, {Transaction? txn}) async {
     final DatabaseExecutor db = txn ?? await AppDatabase.instance();

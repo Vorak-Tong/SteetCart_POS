@@ -52,44 +52,61 @@ class _OrderPageState extends State<OrderPage> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
-        return Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
                 children: [
-                  Text(
-                    'Showing orders on:',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Showing orders on:',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      OrderDatePickerButton(
+                        date: _viewModel.selectedDate,
+                        onPickDate: () => _pickDate(context),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  OrderDatePickerButton(
-                    date: _viewModel.selectedDate,
-                    onPickDate: () => _pickDate(context),
+                  const SizedBox(height: 12),
+                  OrderStatusFilterBar(
+                    value: _viewModel.statusFilter,
+                    onChanged: _viewModel.setStatusFilter,
+                  ),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: OrderListView(
+                      orders: _viewModel.filteredOrders,
+                      orderNumberById:
+                          _viewModel.orderNumberByIdForSelectedDate,
+                      vatPercent: _viewModel.vatPercent,
+                      exchangeRateKhrPerUsd: _viewModel.exchangeRateKhrPerUsd,
+                      roundingMode: _viewModel.roundingMode,
+                      storeProfile: _viewModel.storeProfile,
+                      isExpanded: _viewModel.isExpanded,
+                      onToggleExpanded: _viewModel.toggleExpanded,
+                      onUpdateStatus: (orderId, status) => _viewModel
+                          .updateOrderStatus(orderId: orderId, status: status),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              OrderStatusFilterBar(
-                value: _viewModel.statusFilter,
-                onChanged: _viewModel.setStatusFilter,
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: OrderListView(
-                  orders: _viewModel.filteredOrders,
-                  orderNumberById: _viewModel.orderNumberByIdForSelectedDate,
-                  isExpanded: _viewModel.isExpanded,
-                  onToggleExpanded: _viewModel.toggleExpanded,
-                  onUpdateStatus: (orderId, status) => _viewModel
-                      .updateOrderStatus(orderId: orderId, status: status),
+            ),
+            if ((_viewModel.loading && !_viewModel.hasLoadedOnce) ||
+                _viewModel.updatingStatus)
+              Positioned.fill(
+                child: ColoredBox(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  child: const Center(child: CircularProgressIndicator()),
                 ),
               ),
-            ],
-          ),
+          ],
         );
       },
     );

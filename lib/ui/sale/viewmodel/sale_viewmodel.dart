@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/utils/command.dart';
 
 class SaleViewModel extends ChangeNotifier {
   static const String allCategoryId = '__all__';
@@ -11,14 +12,21 @@ class SaleViewModel extends ChangeNotifier {
   String _selectedCategoryId = allCategoryId;
   String _searchQuery = '';
 
+  late final CommandWithParam<void, void> loadMenuCommand;
+
   SaleViewModel({MenuRepository? repository})
     : _repository = repository ?? MenuRepository() {
     _repository.addListener(notifyListeners);
+
+    loadMenuCommand = CommandWithParam((_) => _repository.init());
+    loadMenuCommand.addListener(notifyListeners);
+    loadMenuCommand.execute(null);
   }
 
   @override
   void dispose() {
     _repository.removeListener(notifyListeners);
+    loadMenuCommand.removeListener(notifyListeners);
     super.dispose();
   }
 
@@ -42,6 +50,7 @@ class SaleViewModel extends ChangeNotifier {
 
   String get selectedCategoryId => _selectedCategoryId;
   String get searchQuery => _searchQuery;
+  bool get loading => loadMenuCommand.running;
 
   void setSelectedCategoryId(String id) {
     if (_selectedCategoryId == id) {

@@ -6,6 +6,8 @@ class ReportKpiSection extends StatelessWidget {
     required this.totalRevenue,
     required this.totalOrders,
     required this.totalItemsSold,
+    this.onRefresh,
+    this.refreshing = false,
   });
 
   static const totalRevenueKey = ValueKey('report_total_revenue');
@@ -15,6 +17,8 @@ class ReportKpiSection extends StatelessWidget {
   final double totalRevenue;
   final int totalOrders;
   final int totalItemsSold;
+  final VoidCallback? onRefresh;
+  final bool refreshing;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +61,18 @@ class ReportKpiSection extends StatelessWidget {
                       color: colorScheme.onPrimary.withOpacity(0.9),
                     ),
                   ),
+                  if (onRefresh != null) ...[
+                    const Spacer(),
+                    IconButton(
+                      tooltip: 'Refresh',
+                      onPressed: refreshing ? null : onRefresh,
+                      icon: Icon(
+                        Icons.refresh_outlined,
+                        color: colorScheme.onPrimary.withOpacity(0.9),
+                      ),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 8),

@@ -5,7 +5,7 @@ import 'package:street_cart_pos/ui/report/widgets/report_kpi_section.dart';
 import 'package:street_cart_pos/ui/report/widgets/report_loading_overlay.dart';
 import 'package:street_cart_pos/ui/report/widgets/report_order_types_card.dart';
 import 'package:street_cart_pos/ui/report/widgets/report_top_products_section.dart';
-import 'package:street_cart_pos/domain/validation/report_date_limits.dart';
+import 'package:street_cart_pos/domain/models/report_model.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key});
@@ -24,11 +24,11 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   Future<void> _selectDateRange() async {
-    final firstDate = ReportDateLimits.firstDate;
-    final lastDate = ReportDateLimits.lastDate;
+    final firstDate = Report.firstDate;
+    final lastDate = Report.lastDate;
 
-    final initialStart = ReportDateLimits.clamp(_viewModel.dateRange.start);
-    final initialEnd = ReportDateLimits.clamp(_viewModel.dateRange.end);
+    final initialStart = Report.clampDate(_viewModel.dateRange.start);
+    final initialEnd = Report.clampDate(_viewModel.dateRange.end);
     final initialDateRange = DateTimeRange(
       start: initialStart.isAfter(initialEnd) ? initialEnd : initialStart,
       end: initialEnd.isBefore(initialStart) ? initialStart : initialEnd,
@@ -84,6 +84,10 @@ class _ReportPageState extends State<ReportPage> {
                       totalRevenue: _viewModel.totalRevenue,
                       totalOrders: _viewModel.totalOrders,
                       totalItemsSold: _viewModel.totalItemsSold,
+                      refreshing: _viewModel.loadReportCommand.running,
+                      onRefresh: _viewModel.loadReportCommand.running
+                          ? null
+                          : () => _viewModel.loadReportCommand.execute(null),
                     ),
                   ),
                 ),

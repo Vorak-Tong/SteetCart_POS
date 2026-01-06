@@ -26,6 +26,10 @@ class _SalePageState extends State<SalePage> {
     return ListenableBuilder(
       listenable: _viewModel,
       builder: (context, _) {
+        if (_viewModel.loading && _viewModel.products.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
         return Padding(
           padding: const EdgeInsets.all(12),
           child: Column(

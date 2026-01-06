@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart' show ChangeNotifier, setEquals;
 import 'package:street_cart_pos/data/repositories/order_repository.dart';
 import 'package:street_cart_pos/domain/models/order_model.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/utils/command.dart';
 
 class ProductSelectionViewModel extends ChangeNotifier {
   ProductSelectionViewModel({
@@ -9,19 +10,23 @@ class ProductSelectionViewModel extends ChangeNotifier {
     OrderRepository? orderRepository,
   }) : _orderRepository = orderRepository ?? OrderRepository() {
     _selectedOptionIdsByGroupId = _initSelections(product);
+
+    addToCartCommand = CommandWithParam((_) => _addToCart());
+    addToCartCommand.addListener(notifyListeners);
   }
 
   final Product product;
   final OrderRepository _orderRepository;
 
+  late final CommandWithParam<void, void> addToCartCommand;
+
   int _quantity = 1;
   String _note = '';
   late Map<String, Set<String>> _selectedOptionIdsByGroupId;
-  bool _addingToCart = false;
 
   int get quantity => _quantity;
   String get note => _note;
-  bool get addingToCart => _addingToCart;
+  bool get addingToCart => addToCartCommand.running;
 
   Map<String, Set<String>> get selectedOptionIdsByGroupId =>
       _selectedOptionIdsByGroupId;
@@ -74,23 +79,16 @@ class ProductSelectionViewModel extends ChangeNotifier {
     return selections;
   }
 
-  Future<void> addToCart() async {
-    if (_addingToCart) return;
+  Future<void> addToCart() => addToCartCommand.execute(null);
 
-    _addingToCart = true;
-    notifyListeners();
-    try {
-      await _orderRepository.addItemToDraftOrder(
-        product: product,
-        quantity: _quantity,
-        unitPrice: unitTotal,
-        modifierSelections: modifierSelectionsSummary,
-        note: _note,
-      );
-    } finally {
-      _addingToCart = false;
-      notifyListeners();
-    }
+  Future<void> _addToCart() async {
+    await _orderRepository.addItemToDraftOrder(
+      product: product,
+      quantity: _quantity,
+      unitPrice: unitTotal,
+      modifierSelections: modifierSelectionsSummary,
+      note: _note,
+    );
   }
 
   void setNote(String note) {
@@ -156,6 +154,12 @@ class ProductSelectionViewModel extends ChangeNotifier {
       group.id: next,
     };
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    addToCartCommand.removeListener(notifyListeners);
+    super.dispose();
   }
 }
 

@@ -1,7 +1,6 @@
 import '../local/app_database.dart';
 import '../local/dao/modifier_dao.dart';
 import '../../domain/models/product_model.dart';
-import '../../domain/validation/field_limits.dart';
 
 class ModifierRepository {
   final _modifierDao = ModifierDao();
@@ -46,17 +45,17 @@ class ModifierRepository {
     if (groupName.isEmpty) {
       throw ArgumentError('Modifier group name cannot be empty.');
     }
-    if (groupName.length > FieldLimits.modifierGroupNameMax) {
+    if (groupName.length > ModifierGroup.nameMax) {
       throw ArgumentError(
-        'Modifier group name must be at most ${FieldLimits.modifierGroupNameMax} characters.',
+        'Modifier group name must be at most ${ModifierGroup.nameMax} characters.',
       );
     }
     if (group.modifierOptions.isEmpty) {
       throw ArgumentError('Modifier group must have at least one option.');
     }
-    if (group.modifierOptions.length > FieldLimits.modifierOptionMaxPerGroup) {
+    if (group.modifierOptions.length > ModifierGroup.maxOptionsPerGroup) {
       throw ArgumentError(
-        'Modifier group can have at most ${FieldLimits.modifierOptionMaxPerGroup} options.',
+        'Modifier group can have at most ${ModifierGroup.maxOptionsPerGroup} options.',
       );
     }
 
@@ -81,9 +80,9 @@ class ModifierRepository {
         if (optionName.isEmpty) {
           throw ArgumentError('Modifier option name cannot be empty.');
         }
-        if (optionName.length > FieldLimits.modifierOptionNameMax) {
+        if (optionName.length > ModifierOptions.nameMax) {
           throw ArgumentError(
-            'Modifier option name must be at most ${FieldLimits.modifierOptionNameMax} characters.',
+            'Modifier option name must be at most ${ModifierOptions.nameMax} characters.',
           );
         }
         final price = group.priceBehavior == ModifierPriceBehavior.none

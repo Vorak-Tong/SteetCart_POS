@@ -25,26 +25,48 @@ class CartOrderTypeSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        SegmentedButton<OrderType>(
-          segments: const [
-            ButtonSegment(
-              value: OrderType.dineIn,
-              label: Text('Dine in'),
-              icon: Icon(Icons.restaurant),
-            ),
-            ButtonSegment(
-              value: OrderType.takeAway,
-              label: Text('Take away'),
-              icon: Icon(Icons.shopping_bag_outlined),
-            ),
-            ButtonSegment(
-              value: OrderType.delivery,
-              label: Text('Delivery'),
-              icon: Icon(Icons.local_shipping_outlined),
-            ),
-          ],
-          selected: {value},
-          onSelectionChanged: (selected) => onChanged(selected.first),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SegmentedButton<OrderType>(
+            showSelectedIcon: false,
+            segments: const [
+              ButtonSegment(
+                value: OrderType.dineIn,
+                label: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Dine in'),
+                    SizedBox(height: 4),
+                    Icon(Icons.restaurant, size: 18),
+                  ],
+                ),
+              ),
+              ButtonSegment(
+                value: OrderType.takeAway,
+                label: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Take away'),
+                    SizedBox(height: 4),
+                    Icon(Icons.shopping_bag_outlined, size: 18),
+                  ],
+                ),
+              ),
+              ButtonSegment(
+                value: OrderType.delivery,
+                label: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Delivery'),
+                    SizedBox(height: 4),
+                    Icon(Icons.local_shipping_outlined, size: 18),
+                  ],
+                ),
+              ),
+            ],
+            selected: {value},
+            onSelectionChanged: (selected) => onChanged(selected.first),
+          ),
         ),
       ],
     );

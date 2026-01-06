@@ -7,7 +7,7 @@ class AppDatabase {
   AppDatabase._();
 
   static const _dbName = 'street_cart_pos_v3.db';
-  static const _dbVersion = 14;
+  static const _dbVersion = 17;
 
   static Database? _db;
 
@@ -118,6 +118,17 @@ class AppDatabase {
         ),
         order_status TEXT CHECK (
           order_status IN ('inPrep', 'ready', 'served', 'cancel')
+        ),
+        vat_percent_applied INTEGER CHECK (
+          vat_percent_applied IS NULL OR
+          (vat_percent_applied >= 0 AND vat_percent_applied <= 100)
+        ),
+        usd_to_khr_rate_applied INTEGER CHECK (
+          usd_to_khr_rate_applied IS NULL OR usd_to_khr_rate_applied > 0
+        ),
+        rounding_mode_applied TEXT CHECK (
+          rounding_mode_applied IS NULL OR
+          rounding_mode_applied IN ('roundUp','roundDown')
         )
       )
     ''');
@@ -159,7 +170,19 @@ class AppDatabase {
       CREATE TABLE sale_policies (
         id INTEGER PRIMARY KEY,
         vat_percent INTEGER NOT NULL,
-        usd_to_khr_rate INTEGER NOT NULL
+        usd_to_khr_rate INTEGER NOT NULL,
+        rounding_mode TEXT NOT NULL DEFAULT 'roundUp'
+          CHECK(rounding_mode IN ('roundUp','roundDown'))
+      )
+    ''');
+
+    // 9. Store Profile
+    await db.execute('''
+      CREATE TABLE store_profiles (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL CHECK(length(name) <= 30),
+        phone TEXT NOT NULL CHECK(length(phone) <= 20),
+        address TEXT NOT NULL CHECK(length(address) <= 80)
       )
     ''');
   }
@@ -173,6 +196,7 @@ class AppDatabase {
     // any schema version bump does a full rebuild of the database.
     await db.transaction((txn) async {
       await txn.execute('PRAGMA foreign_keys = OFF');
+      await txn.execute('DROP TABLE IF EXISTS store_profiles');
       await txn.execute('DROP TABLE IF EXISTS sale_policies');
       await txn.execute('DROP TABLE IF EXISTS payments');
       await txn.execute('DROP TABLE IF EXISTS order_items');

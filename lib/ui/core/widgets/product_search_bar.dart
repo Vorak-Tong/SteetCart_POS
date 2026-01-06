@@ -11,6 +11,7 @@ class ProductSearchBar extends StatefulWidget {
     this.allCategoryId = '__all__',
     this.uncategorizedCategoryId,
     this.archivedCategoryId,
+    this.hintText = 'Search products',
   });
 
   final List<Product> products;
@@ -21,6 +22,7 @@ class ProductSearchBar extends StatefulWidget {
   final String allCategoryId;
   final String? uncategorizedCategoryId;
   final String? archivedCategoryId;
+  final String hintText;
 
   @override
   State<ProductSearchBar> createState() => _ProductSearchBarState();
@@ -79,9 +81,10 @@ class _ProductSearchBarState extends State<ProductSearchBar> {
           controller: _controller,
           focusNode: focusNode,
           textInputAction: TextInputAction.search,
+          onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search),
-            hintText: 'Search products',
+            hintText: widget.hintText,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             suffixIcon: widget.query.isEmpty
                 ? null

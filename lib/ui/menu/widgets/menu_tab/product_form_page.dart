@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:street_cart_pos/domain/models/product_model.dart';
-import 'package:street_cart_pos/domain/validation/field_limits.dart';
 import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
 import 'package:street_cart_pos/ui/core/utils/local_file_image.dart';
 import 'package:street_cart_pos/ui/core/utils/persist_image_path.dart';
@@ -281,7 +280,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
             const SizedBox(height: 8),
             TextField(
               controller: _nameController,
-              maxLength: FieldLimits.productNameMax,
+              maxLength: Product.nameMax,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 hintText: 'e.g., Ice Latte',
@@ -311,7 +310,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
             const SizedBox(height: 8),
             TextField(
               controller: _descriptionController,
-              maxLength: FieldLimits.productDescriptionMax,
+              maxLength: Product.descriptionMax,
               decoration: InputDecoration(
                 hintText: 'Short description',
                 hintStyle: const TextStyle(

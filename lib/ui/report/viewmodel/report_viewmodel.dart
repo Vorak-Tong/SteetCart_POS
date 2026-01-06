@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/data/repositories/report_repository.dart';
-import 'package:street_cart_pos/domain/validation/report_date_limits.dart';
+import 'package:street_cart_pos/domain/models/report_model.dart';
 import 'package:street_cart_pos/utils/command.dart';
 
 class ReportViewModel extends ChangeNotifier {
   ReportViewModel({ReportRepository? repository})
     : _repository = repository ?? ReportRepository(),
       _dateRange = DateTimeRange(
-        start: ReportDateLimits.clamp(DateTime.now()),
-        end: ReportDateLimits.clamp(DateTime.now()),
+        start: Report.clampDate(DateTime.now()),
+        end: Report.clampDate(DateTime.now()),
       ) {
-    loadReportCommand = Command(_fetchReport);
+    loadReportCommand = CommandWithParam((_) => _fetchReport());
     loadReportCommand.addListener(notifyListeners);
-    loadReportCommand.execute();
+    loadReportCommand.execute(null);
   }
 
   final ReportRepository _repository;
@@ -24,7 +24,7 @@ class ReportViewModel extends ChangeNotifier {
   int _totalItemsSold = 0;
   Map<String, int> _orderTypePercentages = {};
 
-  late final Command loadReportCommand;
+  late final CommandWithParam<void, void> loadReportCommand;
 
   @override
   void dispose() {
@@ -43,7 +43,7 @@ class ReportViewModel extends ChangeNotifier {
     if (newRange != _dateRange) {
       _dateRange = newRange;
       notifyListeners();
-      loadReportCommand.execute();
+      loadReportCommand.execute(null);
     }
   }
 

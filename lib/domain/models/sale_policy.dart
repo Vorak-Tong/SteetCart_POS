@@ -1,31 +1,25 @@
+import 'package:street_cart_pos/domain/models/enums.dart';
+
 class SalePolicy {
-  final int vatPercent;
-  final int usdToKhrRate;
+  final double vat;
+  final double exchangeRate;
+  final RoundingMode roundingMode;
 
   const SalePolicy({
-    this.vatPercent = 0,
-    this.usdToKhrRate = 4000,
+    required this.vat,
+    required this.exchangeRate,
+    this.roundingMode = RoundingMode.roundUp,
   });
 
   SalePolicy copyWith({
-    int? vatPercent,
-    int? usdToKhrRate,
+    double? vat,
+    double? exchangeRate,
+    RoundingMode? roundingMode,
   }) {
     return SalePolicy(
-      vatPercent: vatPercent ?? this.vatPercent,
-      usdToKhrRate: usdToKhrRate ?? this.usdToKhrRate,
+      vat: vat ?? this.vat,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      roundingMode: roundingMode ?? this.roundingMode,
     );
   }
-
-  @override
-  String toString() => 'SalePolicy(vatPercent: $vatPercent, usdToKhrRate: $usdToKhrRate)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is SalePolicy && other.vatPercent == vatPercent && other.usdToKhrRate == usdToKhrRate;
-  }
-
-  @override
-  int get hashCode => vatPercent.hashCode ^ usdToKhrRate.hashCode;
 }
