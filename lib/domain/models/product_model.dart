@@ -83,8 +83,4 @@ class Product {
     this.category,
     this.modifierGroups = const [],
   }) : id = id ?? uuid.v4();
-
-  void createProduct() {}
-  void deleteProduct() {}
-  void updateProduct() {}
 }

@@ -7,15 +7,15 @@ void main() {
   setupDatabaseTests();
 
   test('SalePolicyRepository: Get Default and Update', () async {
-    final repo = SalePolicyRepository();
+    final repo = SalePolicyRepositoryImpl();
 
     // 1. Update Policy
-    final newPolicy = SalePolicy(vatPercent: 10, usdToKhrRate: 4100);
-    await repo.savePolicy(newPolicy);
+    final newPolicy = SalePolicy(vat: 10, exchangeRate: 4100);
+    await repo.updateSalePolicy(newPolicy);
 
     // 2. Verify
-    final fetchedPolicy = await repo.getPolicy();
-    expect(fetchedPolicy.vatPercent, 10);
-    expect(fetchedPolicy.usdToKhrRate, 4100);
+    final fetchedPolicy = await repo.getSalePolicy();
+    expect(fetchedPolicy.vat, 10);
+    expect(fetchedPolicy.exchangeRate, 4100);
   });
 }

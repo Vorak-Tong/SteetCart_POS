@@ -123,6 +123,9 @@ void main() {
       orderType: OrderType.dineIn,
       paymentType: PaymentMethod.cash,
       payment: payment,
+      vatPercentApplied: 10,
+      usdToKhrRateApplied: 4000,
+      roundingModeApplied: RoundingMode.roundUp,
     );
 
     expect(await orderRepo.getDraftOrder(), isNull);
