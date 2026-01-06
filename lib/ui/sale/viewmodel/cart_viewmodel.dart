@@ -380,6 +380,52 @@ class CartViewModel extends ChangeNotifier {
     _updateQuantity(orderItemId, delta: -1);
   }
 
+  void removeItemLine(String orderItemId) {
+    final order = _draftOrder;
+    if (order == null) {
+      return;
+    }
+
+    final index = order.orderProducts.indexWhere((x) => x.id == orderItemId);
+    if (index == -1) {
+      return;
+    }
+
+    final orderId = order.id;
+    final willBeEmpty = order.orderProducts.length == 1;
+
+    if (willBeEmpty) {
+      _draftOrder = null;
+      setCartItemLineCount(0);
+
+      _receivedUsd = null;
+      _receivedKhr = null;
+      _receivedUsdError = null;
+      _receivedKhrError = null;
+    } else {
+      order.orderProducts = [
+        ...order.orderProducts.sublist(0, index),
+        ...order.orderProducts.sublist(index + 1),
+      ];
+      setCartItemLineCount(order.orderProducts.length);
+    }
+
+    notifyListeners();
+
+    unawaited(
+      _cartRepository
+          .deleteOrderItem(orderItemId)
+          .then((_) async {
+            if (willBeEmpty) {
+              await _cartRepository.deleteOrder(orderId);
+            }
+          })
+          .catchError((_) {
+            refreshFromDb();
+          }),
+    );
+  }
+
   Future<void> clearCart() async {
     await clearCartCommand.execute(null);
   }

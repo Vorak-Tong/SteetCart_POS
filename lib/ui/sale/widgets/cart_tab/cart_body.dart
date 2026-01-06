@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:street_cart_pos/ui/core/widgets/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/cart_viewmodel.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_line_item_tile.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_order_type_section.dart';
@@ -22,6 +23,28 @@ class CartBody extends StatelessWidget {
   final ValueChanged<String> onUsdChanged;
   final ValueChanged<String> onKhrChanged;
   final double bottomPadding;
+
+  Future<bool> _confirmDeleteLine(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove item?'),
+        content: const Text('This will remove the item from the cart.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+
+    return confirmed ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,19 +71,38 @@ class CartBody extends StatelessWidget {
             child: ListView(
               children: [
                 for (final entry in viewModel.items.indexed) ...[
-                  CartLineItemTile(
-                    item: entry.$2,
-                    onDecrement: entry.$2.quantity <= 1
-                        ? null
-                        : () {
-                            viewModel.decrementItemQuantity(entry.$2.id);
-                          },
-                    onIncrement: () {
-                      viewModel.incrementItemQuantity(entry.$2.id);
-                    },
+                  Dismissible(
+                    key: ValueKey(entry.$2.id),
+                    direction:
+                        (viewModel.loading ||
+                            viewModel.checkingOut ||
+                            viewModel.clearingCart)
+                        ? DismissDirection.none
+                        : DismissDirection.endToStart,
+                    secondaryBackground: const SwipeActionBackground(
+                      alignment: Alignment.centerRight,
+                      backgroundColor: Color(0xFFFFEBEB),
+                      borderRadius: 14,
+                      icon: Icons.delete_outline,
+                      iconColor: Colors.red,
+                      label: 'Remove',
+                    ),
+                    confirmDismiss: (_) => _confirmDeleteLine(context),
+                    onDismissed: (_) => viewModel.removeItemLine(entry.$2.id),
+                    child: CartLineItemTile(
+                      item: entry.$2,
+                      onDecrement: entry.$2.quantity <= 1
+                          ? null
+                          : () {
+                              viewModel.decrementItemQuantity(entry.$2.id);
+                            },
+                      onIncrement: () {
+                        viewModel.incrementItemQuantity(entry.$2.id);
+                      },
+                    ),
                   ),
                   if (entry.$1 != viewModel.items.length - 1)
-                    const Divider(height: 1, thickness: 1),
+                    const SizedBox(height: 10),
                 ],
                 const SizedBox(height: 12),
                 CartTotalsSummary(viewModel: viewModel),

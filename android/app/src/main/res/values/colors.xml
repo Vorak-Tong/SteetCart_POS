@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Match Flutter brand seed color (lib/ui/core/theme/app_theme.dart). -->
+    <color name="splash_background">#5EAF41</color>
+</resources>
+

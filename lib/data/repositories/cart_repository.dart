@@ -111,6 +111,13 @@ class CartRepository {
     });
   }
 
+  Future<void> deleteOrder(String orderId) async {
+    final db = await AppDatabase.instance();
+    await db.transaction((txn) async {
+      await _orderDao.delete(orderId, txn: txn);
+    });
+  }
+
   Future<void> updateDraftOrderType(String orderId, OrderType orderType) async {
     final db = await AppDatabase.instance();
     await db.transaction((txn) async {

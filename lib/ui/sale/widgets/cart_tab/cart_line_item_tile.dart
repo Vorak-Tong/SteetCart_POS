@@ -59,52 +59,57 @@ class CartLineItemTile extends StatelessWidget {
     final subtitleLines = _buildSubtitleLines(theme);
     final product = item.product;
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 88),
-      child: Column(
-        children: [
-          ListTile(
-            contentPadding: const EdgeInsetsDirectional.fromSTEB(12, 8, 8, 0),
-            leading: SizedBox.square(
-              dimension: 44,
-              child: ProductImage(
-                imagePath: product?.imagePath,
-                showPlaceholderLabel: false,
-                placeholderIconSize: 20,
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 92),
+        child: Column(
+          children: [
+            ListTile(
+              contentPadding: const EdgeInsetsDirectional.fromSTEB(12, 8, 8, 0),
+              leading: SizedBox.square(
+                dimension: 44,
+                child: ProductImage(
+                  imagePath: product?.imagePath,
+                  showPlaceholderLabel: false,
+                  placeholderIconSize: 20,
+                ),
+              ),
+              title: Text(product?.name ?? 'Unknown item'),
+              subtitle: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (subtitleLines.isNotEmpty)
+                    ...subtitleLines
+                  else
+                    const SizedBox(height: 0),
+                  const SizedBox(height: 4),
+                ],
+              ),
+              trailing: QuantityStepper(
+                size: QuantityStepperSize.compact,
+                quantity: item.quantity,
+                onDecrement: onDecrement,
+                onIncrement: onIncrement,
               ),
             ),
-            title: Text(product?.name ?? 'Unknown item'),
-            subtitle: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (subtitleLines.isNotEmpty)
-                  ...subtitleLines
-                else
-                  const SizedBox(height: 0),
-                const SizedBox(height: 4),
-              ],
-            ),
-            trailing: QuantityStepper(
-              size: QuantityStepperSize.compact,
-              quantity: item.quantity,
-              onDecrement: onDecrement,
-              onIncrement: onIncrement,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 12, bottom: 4),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                formatUsd(item.getLineTotal()),
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
+            Padding(
+              padding: const EdgeInsets.only(right: 12, bottom: 8),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  formatUsd(item.getLineTotal()),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
