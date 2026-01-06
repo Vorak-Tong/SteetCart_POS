@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:street_cart_pos/ui/core/widgets/category_filter_chips.dart';
-import 'package:street_cart_pos/ui/core/widgets/inline_hint_card.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_grid.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_search_bar.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/category_filter_chips.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_grid.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_search_bar.dart';
 import 'package:street_cart_pos/ui/menu/utils/menu_tab_state.dart';
 import 'package:street_cart_pos/ui/sale/widgets/sale_tab/product_selection_sheet.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/sale_viewmodel.dart';

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/category.dart';
 import 'package:street_cart_pos/domain/models/product.dart';
-import 'package:street_cart_pos/ui/core/widgets/add_new_button.dart';
-import 'package:street_cart_pos/ui/core/widgets/category_filter_chips.dart';
-import 'package:street_cart_pos/ui/core/widgets/inline_hint_card.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_search_bar.dart';
-import 'package:street_cart_pos/ui/core/widgets/swipe_action_background.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/add_new_button.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/category_filter_chips.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_search_bar.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/menu_item_card.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_detail_page.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_form_page.dart';

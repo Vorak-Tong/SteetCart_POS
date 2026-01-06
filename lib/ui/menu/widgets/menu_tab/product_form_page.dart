@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:street_cart_pos/domain/models/category.dart';
 import 'package:street_cart_pos/domain/models/modifier_group.dart';
 import 'package:street_cart_pos/domain/models/product.dart';
-import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/dashed_border_painter.dart';
 import 'package:street_cart_pos/ui/core/utils/local_file_image.dart';
 import 'package:street_cart_pos/ui/core/utils/persist_image_path.dart';
 
@@ -180,7 +180,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 top: 6,
                 right: 6,
                 child: Material(
-                  color: Colors.black.withOpacity(0.35),
+                  color: Colors.black.withValues(alpha: 0.35),
                   shape: const CircleBorder(),
                   child: InkWell(
                     customBorder: const CircleBorder(),
@@ -198,7 +198,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                 bottom: 0,
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 6),
-                  color: Colors.black.withOpacity(0.35),
+                  color: Colors.black.withValues(alpha: 0.35),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -383,7 +383,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
             SizedBox(
               height: 44,
               child: DropdownButtonFormField<String?>(
-                value: _selectedCategoryId,
+                initialValue: _selectedCategoryId,
                 dropdownColor: Colors.white,
                 borderRadius: BorderRadius.circular(8),
                 hint: const Text(

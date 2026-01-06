@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/ui/core/widgets/swipe_action_background.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/cart_viewmodel.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_line_item_tile.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_order_type_section.dart';
@@ -79,6 +79,7 @@ class CartBody extends StatelessWidget {
                             viewModel.clearingCart)
                         ? DismissDirection.none
                         : DismissDirection.endToStart,
+                    background: const SizedBox.shrink(),
                     secondaryBackground: const SwipeActionBackground(
                       alignment: Alignment.centerRight,
                       backgroundColor: Color(0xFFFFEBEB),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
-import 'package:street_cart_pos/ui/core/widgets/modifier_group_selection.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
-import 'package:street_cart_pos/ui/core/widgets/quantity_stepper.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/modifier_group_selection.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_image.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/quantity_stepper.dart';
 import 'package:street_cart_pos/ui/sale/utils/add_to_cart_fly_animation.dart';
 import 'package:street_cart_pos/ui/sale/viewmodel/product_selection_viewmodel.dart';
 

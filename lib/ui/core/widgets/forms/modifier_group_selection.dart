@@ -29,6 +29,9 @@ class ModifierGroupSelection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final selectedSingleId = selectedOptionIds.isEmpty
+        ? null
+        : selectedOptionIds.first;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -46,31 +49,44 @@ class ModifierGroupSelection extends StatelessWidget {
                 ),
               ),
             ),
-            for (final option in group.modifierOptions)
-              if (group.selectionType == ModifierSelectionType.single)
-                _SingleSelectionRow(
-                  value: option.id,
-                  groupValue: selectedOptionIds.isEmpty
-                      ? null
-                      : selectedOptionIds.first,
-                  readOnly: readOnly,
-                  title: _optionLabel(option, group.priceBehavior),
-                  onChanged: onSelectSingle,
-                )
-              else
-                _MultiSelectionRow(
-                  optionId: option.id,
-                  selected: selectedOptionIds.contains(option.id),
-                  readOnly: readOnly,
-                  title: _optionLabel(option, group.priceBehavior),
-                  enabled: _isMultiOptionEnabled(
-                    group: group,
-                    selectedOptionIds: selectedOptionIds,
-                    optionId: option.id,
-                    readOnly: readOnly,
-                  ),
-                  onChanged: onToggleMulti,
+            if (group.selectionType == ModifierSelectionType.single)
+              RadioGroup<String>(
+                groupValue: selectedSingleId,
+                onChanged: (value) {
+                  if (readOnly) return;
+                  if (value == null) return;
+                  onSelectSingle?.call(value);
+                },
+                child: Column(
+                  children: [
+                    for (final option in group.modifierOptions)
+                      _SingleSelectionRow(
+                        value: option.id,
+                        readOnly: readOnly,
+                        title: _optionLabel(option, group.priceBehavior),
+                      ),
+                  ],
                 ),
+              )
+            else
+              Column(
+                children: [
+                  for (final option in group.modifierOptions)
+                    _MultiSelectionRow(
+                      optionId: option.id,
+                      selected: selectedOptionIds.contains(option.id),
+                      readOnly: readOnly,
+                      title: _optionLabel(option, group.priceBehavior),
+                      enabled: _isMultiOptionEnabled(
+                        group: group,
+                        selectedOptionIds: selectedOptionIds,
+                        optionId: option.id,
+                        readOnly: readOnly,
+                      ),
+                      onChanged: onToggleMulti,
+                    ),
+                ],
+              ),
           ],
         ),
       ),
@@ -81,26 +97,21 @@ class ModifierGroupSelection extends StatelessWidget {
 class _SingleSelectionRow extends StatelessWidget {
   const _SingleSelectionRow({
     required this.value,
-    required this.groupValue,
     required this.readOnly,
     required this.title,
-    required this.onChanged,
   });
 
   final String value;
-  final String? groupValue;
   final bool readOnly;
   final String title;
-  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     return RadioListTile<String>(
       value: value,
-      groupValue: groupValue,
-      onChanged: readOnly ? null : (v) => v == null ? null : onChanged?.call(v),
       title: Text(title),
       dense: true,
+      enabled: !readOnly,
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
-import 'package:street_cart_pos/ui/core/widgets/app_shell.dart';
-import 'package:street_cart_pos/ui/core/widgets/bottom_nav_generator.dart';
+import 'package:street_cart_pos/ui/core/widgets/navigation/app_shell.dart';
+import 'package:street_cart_pos/ui/core/widgets/navigation/bottom_nav_generator.dart';
 import 'package:street_cart_pos/ui/menu/utils/menu_tab_state.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab_selector.dart';
 import 'package:street_cart_pos/ui/policy/policy_page.dart';

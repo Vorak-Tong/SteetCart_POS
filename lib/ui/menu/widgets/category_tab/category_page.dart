@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/ui/core/widgets/add_new_button.dart';
-import 'package:street_cart_pos/ui/core/widgets/inline_hint_card.dart';
-import 'package:street_cart_pos/ui/core/widgets/swipe_action_background.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/add_new_button.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
+import 'package:street_cart_pos/ui/core/widgets/feedback/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/category_viewmodel.dart';
 import 'package:street_cart_pos/ui/menu/widgets/category_tab/category_form_modal.dart';
 import 'package:street_cart_pos/ui/menu/widgets/category_tab/category_item_card.dart';

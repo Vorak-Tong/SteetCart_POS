@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:street_cart_pos/ui/core/widgets/app_drawer.dart';
+import 'package:street_cart_pos/ui/core/widgets/navigation/app_drawer.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({

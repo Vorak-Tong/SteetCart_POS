@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/ui/core/widgets/badge_icon.dart';
+import 'package:street_cart_pos/ui/core/widgets/navigation/badge_icon.dart';
 import 'package:street_cart_pos/ui/sale/utils/cart_badge_state.dart';
 import 'package:street_cart_pos/ui/sale/utils/add_to_cart_fly_animation.dart';
 

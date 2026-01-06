@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
-import 'package:street_cart_pos/ui/core/widgets/quantity_stepper.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_image.dart';
+import 'package:street_cart_pos/ui/core/widgets/forms/quantity_stepper.dart';
 import 'package:street_cart_pos/domain/models/order_product.dart';
 
 class CartLineItemTile extends StatelessWidget {

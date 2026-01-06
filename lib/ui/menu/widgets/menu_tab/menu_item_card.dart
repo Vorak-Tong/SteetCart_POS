@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
-import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
+import 'package:street_cart_pos/ui/core/widgets/product/product_image.dart';
 
 class MenuItemCard extends StatelessWidget {
   const MenuItemCard({super.key, required this.product, this.onTap});
