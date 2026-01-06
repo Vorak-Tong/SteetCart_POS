@@ -5,14 +5,16 @@ import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_body.dart';
 import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_checkout_bar.dart';
 
 class CartPage extends StatefulWidget {
-  const CartPage({super.key});
+  const CartPage({super.key, this.viewModel});
+
+  final CartViewModel? viewModel;
 
   @override
   State<CartPage> createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  late final CartViewModel _viewModel = CartViewModel();
+  late final CartViewModel _viewModel = widget.viewModel ?? CartViewModel();
   late final TextEditingController _receivedUsdController =
       TextEditingController();
   late final TextEditingController _receivedKhrController =
@@ -75,7 +77,9 @@ class _CartPageState extends State<CartPage> {
   @override
   void dispose() {
     saleTabIndex.removeListener(_onTabIndexChanged);
-    _viewModel.dispose();
+    if (widget.viewModel == null) {
+      _viewModel.dispose();
+    }
     _receivedUsdController.dispose();
     _receivedKhrController.dispose();
     super.dispose();

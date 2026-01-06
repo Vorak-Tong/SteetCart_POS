@@ -29,11 +29,6 @@ class ModifierDao {
     return await db.query(tableGroups);
   }
 
-  Future<List<Map<String, Object?>>> getAllGroups() async {
-    final db = await AppDatabase.instance();
-    return await db.query(tableGroups);
-  }
-
   Future<List<Map<String, Object?>>> getGroupsByIds(
     List<String> groupIds, {
     Transaction? txn,
@@ -54,15 +49,6 @@ class ModifierDao {
       tableGroups,
       data,
       conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  Future<int> deleteGroupsByProductId(
-    String productId, {
-    Transaction? txn,
-  }) async {
-    throw UnsupportedError(
-      'Product-specific modifier groups are no longer supported.',
     );
   }
 
@@ -109,15 +95,6 @@ class ModifierDao {
       tableOptions,
       where: '$colOptionGroupId = ?',
       whereArgs: [groupId],
-    );
-  }
-
-  Future<void> deleteModifiersForProduct(
-    String productId, {
-    Transaction? txn,
-  }) async {
-    throw UnsupportedError(
-      'Product-specific modifier groups are no longer supported.',
     );
   }
 }

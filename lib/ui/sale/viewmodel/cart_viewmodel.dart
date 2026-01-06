@@ -1,11 +1,15 @@
 import 'dart:async' show unawaited;
 
-import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
+import 'package:flutter/foundation.dart'
+    show ChangeNotifier, debugPrint, kDebugMode;
+import 'package:street_cart_pos/data/repositories/cart_repository.dart';
 import 'package:street_cart_pos/data/repositories/store_profile_repository.dart';
-import 'package:street_cart_pos/data/repositories/order_repository.dart';
+import 'package:street_cart_pos/data/repositories/order_history_repository.dart';
 import 'package:street_cart_pos/data/repositories/sale_policy_repository.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
-import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/domain/models/order.dart';
+import 'package:street_cart_pos/domain/models/order_product.dart';
+import 'package:street_cart_pos/domain/models/payment.dart';
 import 'package:street_cart_pos/domain/models/sale_policy.dart';
 import 'package:street_cart_pos/ui/core/printing/bluetooth_printer_service.dart';
 import 'package:street_cart_pos/ui/core/printing/receipt_escpos_builder.dart';
@@ -13,12 +17,15 @@ import 'package:street_cart_pos/utils/command.dart';
 
 class CartViewModel extends ChangeNotifier {
   CartViewModel({
-    OrderRepository? orderRepository,
+    CartRepository? cartRepository,
+    OrderHistoryRepository? orderHistoryRepository,
     SalePolicyRepository? salePolicyRepository,
     StoreProfileRepository? storeProfileRepository,
     BluetoothPrinterService? printerService,
     ReceiptEscPosBuilder? receiptBuilder,
-  }) : _orderRepository = orderRepository ?? OrderRepository(),
+  }) : _cartRepository = cartRepository ?? CartRepository(),
+       _orderHistoryRepository =
+           orderHistoryRepository ?? OrderHistoryRepository(),
        _salePolicyRepository =
            salePolicyRepository ?? SalePolicyRepositoryImpl(),
        _storeProfileRepository =
@@ -36,7 +43,8 @@ class CartViewModel extends ChangeNotifier {
     loadCartCommand.execute(null);
   }
 
-  final OrderRepository _orderRepository;
+  final CartRepository _cartRepository;
+  final OrderHistoryRepository _orderHistoryRepository;
   final SalePolicyRepository _salePolicyRepository;
   final StoreProfileRepository _storeProfileRepository;
   final BluetoothPrinterService _printerService;
@@ -128,12 +136,8 @@ class CartViewModel extends ChangeNotifier {
   Future<void> checkout() => checkoutCommand.execute(null);
 
   Future<void> _loadCart() async {
-    final results = await Future.wait<Object?>([
-      _orderRepository.getDraftOrder(),
-      _salePolicyRepository.getSalePolicy(),
-    ]);
-    _draftOrder = results[0] as Order?;
-    _policy = results[1] as SalePolicy;
+    _draftOrder = await _cartRepository.getDraftOrder();
+    _policy = await _salePolicyRepository.getSalePolicy();
 
     if (_draftOrder != null) {
       _pendingOrderType = _draftOrder!.orderType;
@@ -151,69 +155,67 @@ class CartViewModel extends ChangeNotifier {
     if (items.isEmpty) return;
     if (!hasSufficientPayment) return;
 
-    try {
-      final finalizedAt = DateTime.now();
-      final receiveUsd = _hasValidReceivedUsd ? _receivedUsd! : 0.0;
-      final receiveKhr = _hasValidReceivedKhr ? _receivedKhr! : 0;
+    final finalizedAt = DateTime.now();
+    final receiveUsd = _hasValidReceivedUsd ? _receivedUsd! : 0.0;
+    final receiveKhr = _hasValidReceivedKhr ? _receivedKhr! : 0;
 
-      final changeUsd = () {
-        if (receiveUsd <= 0) return 0.0;
-        final candidate = _roundUsd(receiveUsd - grandTotalUsd);
-        return candidate < 0 ? 0.0 : candidate;
-      }();
-      final changeKhr = (receiveKhr > 0)
-          ? (receiveKhr - grandTotalKhr)
-          : _toKhr(changeUsd);
+    final changeUsd = () {
+      if (receiveUsd <= 0) return 0.0;
+      final candidate = _roundUsd(receiveUsd - grandTotalUsd);
+      return candidate < 0 ? 0.0 : candidate;
+    }();
+    final changeKhr = (receiveKhr > 0)
+        ? (receiveKhr - grandTotalKhr)
+        : _toKhr(changeUsd);
 
-      final payment = Payment(
-        type: paymentMethod,
-        recieveAmountKHR: receiveKhr,
-        recieveAmountUSD: receiveUsd,
-        changeKhr: changeKhr,
-        changeUSD: changeUsd,
-      );
+    final payment = Payment(
+      type: paymentMethod,
+      recieveAmountKHR: receiveKhr,
+      recieveAmountUSD: receiveUsd,
+      changeKhr: changeKhr,
+      changeUSD: changeUsd,
+    );
 
-      final receiptOrder = Order(
-        id: order.id,
-        timeStamp: finalizedAt,
-        orderType: order.orderType,
-        paymentType: order.paymentType,
-        cartStatus: CartStatus.finalized,
-        orderStatus: OrderStatus.inPrep,
-        vatPercentApplied: vatPercent,
-        usdToKhrRateApplied: exchangeRateKhrPerUsd,
-        roundingModeApplied: roundingMode,
-        payment: payment,
-        orderProducts: List<OrderProduct>.unmodifiable(order.orderProducts),
-      );
+    final receiptOrder = Order(
+      id: order.id,
+      timeStamp: finalizedAt,
+      orderType: order.orderType,
+      paymentType: order.paymentType,
+      cartStatus: CartStatus.finalized,
+      orderStatus: OrderStatus.inPrep,
+      vatPercentApplied: vatPercent,
+      usdToKhrRateApplied: exchangeRateKhrPerUsd,
+      roundingModeApplied: roundingMode,
+      payment: payment,
+      orderProducts: List<OrderProduct>.unmodifiable(order.orderProducts),
+    );
 
-      await _orderRepository.finalizeDraftOrder(
-        orderId: order.id,
-        finalizedAt: finalizedAt,
-        orderType: order.orderType,
-        paymentType: order.paymentType,
-        payment: payment,
-        vatPercentApplied: vatPercent,
-        usdToKhrRateApplied: exchangeRateKhrPerUsd,
-        roundingModeApplied: roundingMode,
-      );
+    await _cartRepository.checkoutDraftOrder(
+      orderId: order.id,
+      finalizedAt: finalizedAt,
+      orderType: order.orderType,
+      paymentType: order.paymentType,
+      payment: payment,
+      vatPercentApplied: vatPercent,
+      usdToKhrRateApplied: exchangeRateKhrPerUsd,
+      roundingModeApplied: roundingMode,
+    );
 
-      _draftOrder = null;
-      _receivedUsd = null;
-      _receivedKhr = null;
-      _receivedUsdError = null;
-      _receivedKhrError = null;
-      notifyListeners();
+    _draftOrder = null;
+    _receivedUsd = null;
+    _receivedKhr = null;
+    _receivedUsdError = null;
+    _receivedKhrError = null;
+    notifyListeners();
 
-      unawaited(
-        _autoPrintReceiptIfAvailable(
-          receiptOrder,
-          vatPercent: vatPercent,
-          exchangeRateKhrPerUsd: exchangeRateKhrPerUsd,
-          roundingMode: roundingMode,
-        ),
-      );
-    } finally {}
+    unawaited(
+      _autoPrintReceiptIfAvailable(
+        receiptOrder,
+        vatPercent: vatPercent,
+        exchangeRateKhrPerUsd: exchangeRateKhrPerUsd,
+        roundingMode: roundingMode,
+      ),
+    );
   }
 
   Future<void> _autoPrintReceiptIfAvailable(
@@ -225,13 +227,14 @@ class CartViewModel extends ChangeNotifier {
     try {
       final printerSettings = await _printerService.getSettings();
       if (!printerSettings.isConfigured) {
-        debugPrint('Auto-print skipped: no printer configured.');
+        if (kDebugMode) {
+          debugPrint('Auto-print skipped: no printer configured.');
+        }
         return;
       }
 
-      final displayNumber = await _orderRepository.getFinalizedOrderCountForDay(
-        receiptOrder.timeStamp,
-      );
+      final displayNumber = await _orderHistoryRepository
+          .getFinalizedOrderCountForDay(receiptOrder.timeStamp);
       final storeProfile = await _storeProfileRepository.getStoreProfile();
       final payload = _receiptBuilder.build(
         storeProfile: storeProfile,
@@ -247,13 +250,17 @@ class CartViewModel extends ChangeNotifier {
         payload,
         bluetoothMacAddress: printerSettings.bluetoothMacAddress,
       );
-      debugPrint(
-        'Auto-print sent to ${printerSettings.deviceName ?? 'printer'} '
-        '(${printerSettings.bluetoothMacAddress}).',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'Auto-print sent to ${printerSettings.deviceName ?? 'printer'} '
+          '(${printerSettings.bluetoothMacAddress}).',
+        );
+      }
     } catch (_) {
       // Checkout should remain successful even if printing fails.
-      debugPrint('Auto-print failed (ignored).');
+      if (kDebugMode) {
+        debugPrint('Auto-print failed (ignored).');
+      }
     }
   }
 
@@ -272,8 +279,8 @@ class CartViewModel extends ChangeNotifier {
     order.orderType = type;
     notifyListeners();
 
-    _orderRepository
-        .updateOrderMeta(order.id, orderType: type)
+    _cartRepository
+        .updateDraftOrderType(order.id, type)
         .catchError((_) => refreshFromDb());
   }
 
@@ -292,8 +299,8 @@ class CartViewModel extends ChangeNotifier {
     order.paymentType = method;
     notifyListeners();
 
-    _orderRepository
-        .updateOrderMeta(order.id, paymentType: method)
+    _cartRepository
+        .updateDraftPaymentMethod(order.id, method)
         .catchError((_) => refreshFromDb());
   }
 
@@ -378,7 +385,7 @@ class CartViewModel extends ChangeNotifier {
       return;
     }
 
-    await _orderRepository.deleteDraftOrder();
+    await _cartRepository.deleteDraftOrder();
     _draftOrder = null;
 
     _receivedUsd = null;
@@ -419,7 +426,7 @@ class CartViewModel extends ChangeNotifier {
     ];
     notifyListeners();
 
-    _orderRepository
+    _cartRepository
         .updateOrderItemQuantity(orderItemId, quantity: nextQuantity)
         .catchError((_) => refreshFromDb());
   }

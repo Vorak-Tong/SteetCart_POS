@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/modifier_enums.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_form_page.dart';
 
 class ModifierDetailPage extends StatefulWidget {

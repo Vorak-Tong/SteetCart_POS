@@ -1,6 +1,8 @@
 import '../local/app_database.dart';
 import '../local/dao/modifier_dao.dart';
-import '../../domain/models/product_model.dart';
+import '../../domain/models/modifier_enums.dart';
+import '../../domain/models/modifier_group.dart';
+import '../../domain/models/modifier_option.dart';
 
 class ModifierRepository {
   final _modifierDao = ModifierDao();

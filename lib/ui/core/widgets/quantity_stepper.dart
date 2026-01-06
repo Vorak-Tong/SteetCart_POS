@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum QuantityStepperSize {
-  compact,
-  regular,
-}
+enum QuantityStepperSize { compact, regular }
 
 class QuantityStepper extends StatelessWidget {
   const QuantityStepper({
@@ -27,10 +24,11 @@ class QuantityStepper extends StatelessWidget {
     final buttonExtent = size == QuantityStepperSize.compact ? 28.0 : 40.0;
     final iconSize = size == QuantityStepperSize.compact ? 16.0 : 22.0;
     final valueWidth = size == QuantityStepperSize.compact ? 22.0 : 28.0;
-    final valueStyle = (size == QuantityStepperSize.compact
-            ? theme.textTheme.titleSmall
-            : theme.textTheme.titleMedium)
-        ?.copyWith(fontWeight: FontWeight.w700);
+    final valueStyle =
+        (size == QuantityStepperSize.compact
+                ? theme.textTheme.titleSmall
+                : theme.textTheme.titleMedium)
+            ?.copyWith(fontWeight: FontWeight.w700);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -91,7 +89,9 @@ class _StepButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final enabled = onTap != null;
 
-    final iconColor = enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant;
+    final iconColor = enabled
+        ? colorScheme.onSurface
+        : colorScheme.onSurfaceVariant;
 
     return Tooltip(
       message: tooltip,
@@ -102,11 +102,7 @@ class _StepButton extends StatelessWidget {
           width: extent,
           height: extent,
           child: Center(
-            child: Icon(
-              icon,
-              size: iconSize,
-              color: iconColor,
-            ),
+            child: Icon(icon, size: iconSize, color: iconColor),
           ),
         ),
       ),

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
 import 'package:street_cart_pos/utils/command.dart';
 import 'package:uuid/uuid.dart';
 

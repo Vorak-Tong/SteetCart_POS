@@ -5,8 +5,6 @@ class ModifierPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('modifier page'),
-    );
+    return const Center(child: Text('modifier page'));
   }
 }

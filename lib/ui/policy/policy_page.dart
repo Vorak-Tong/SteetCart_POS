@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_search_bar.dart';
 import 'package:street_cart_pos/ui/policy/widgets/settings_tile.dart';
 import 'package:street_cart_pos/ui/policy/widgets/about_store_page.dart';

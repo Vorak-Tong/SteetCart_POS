@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/modifier_enums.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/modifier_option.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
 
 class ModifierGroupSelection extends StatelessWidget {

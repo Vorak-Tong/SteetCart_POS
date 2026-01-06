@@ -6,18 +6,22 @@ import 'package:street_cart_pos/ui/sale/widgets/sale_tab/product_selection_sheet
 import 'package:street_cart_pos/ui/sale/viewmodel/sale_viewmodel.dart';
 
 class SalePage extends StatefulWidget {
-  const SalePage({super.key});
+  const SalePage({super.key, this.viewModel});
+
+  final SaleViewModel? viewModel;
 
   @override
   State<SalePage> createState() => _SalePageState();
 }
 
 class _SalePageState extends State<SalePage> {
-  late final SaleViewModel _viewModel = SaleViewModel();
+  late final SaleViewModel _viewModel = widget.viewModel ?? SaleViewModel();
 
   @override
   void dispose() {
-    _viewModel.dispose();
+    if (widget.viewModel == null) {
+      _viewModel.dispose();
+    }
     super.dispose();
   }
 

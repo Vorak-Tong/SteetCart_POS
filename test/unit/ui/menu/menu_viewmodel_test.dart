@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/menu_viewmodel.dart';
 import '../../../helpers/fake_menu_repository.dart';
 import 'package:uuid/uuid.dart';
@@ -16,11 +17,27 @@ void main() {
     await repo.addCategory(Category(id: const Uuid().v4(), name: 'Tea'));
     await repo.addCategory(Category(id: const Uuid().v4(), name: 'Matcha'));
     await repo.addCategory(Category(id: const Uuid().v4(), name: 'Smoothies'));
-    
+
     final coffee = repo.categories.firstWhere((c) => c.name == 'Coffee');
-    await repo.addProduct(Product(id: const Uuid().v4(), name: 'Iced Latte', basePrice: 2.5, category: coffee));
-    await repo.addProduct(Product(id: const Uuid().v4(), name: 'Cappuccino', basePrice: 3.0, category: coffee));
-    await repo.addProduct(Product(id: const Uuid().v4(), name: 'Green Tea Latte', basePrice: 3.5));
+    await repo.addProduct(
+      Product(
+        id: const Uuid().v4(),
+        name: 'Iced Latte',
+        basePrice: 2.5,
+        category: coffee,
+      ),
+    );
+    await repo.addProduct(
+      Product(
+        id: const Uuid().v4(),
+        name: 'Cappuccino',
+        basePrice: 3.0,
+        category: coffee,
+      ),
+    );
+    await repo.addProduct(
+      Product(id: const Uuid().v4(), name: 'Green Tea Latte', basePrice: 3.5),
+    );
 
     viewModel = MenuViewModel();
   });
@@ -34,26 +51,38 @@ void main() {
   test('setSearchQuery filters products by name', () {
     // "Latte" matches "Iced Latte" and "Green Tea Latte"
     viewModel.setSearchQuery('Latte');
-    
+
     expect(viewModel.searchQuery, 'Latte');
     expect(viewModel.filteredProducts.length, 2);
-    expect(viewModel.filteredProducts.any((p) => p.name == 'Cappuccino'), isFalse);
+    expect(
+      viewModel.filteredProducts.any((p) => p.name == 'Cappuccino'),
+      isFalse,
+    );
   });
 
   test('setSelectedCategoryId filters products by category', () {
-    final coffeeCategory = viewModel.categories.firstWhere((c) => c.name == 'Coffee');
-    
+    final coffeeCategory = viewModel.categories.firstWhere(
+      (c) => c.name == 'Coffee',
+    );
+
     viewModel.setSelectedCategoryId(coffeeCategory.id);
-    
+
     expect(viewModel.selectedCategoryId, coffeeCategory.id);
     // Should match "Iced Latte" and "Cappuccino"
     expect(viewModel.filteredProducts.length, 2);
-    expect(viewModel.filteredProducts.every((p) => p.category?.id == coffeeCategory.id), isTrue);
+    expect(
+      viewModel.filteredProducts.every(
+        (p) => p.category?.id == coffeeCategory.id,
+      ),
+      isTrue,
+    );
   });
 
   test('Combined filter: Category AND Search', () {
-    final coffeeCategory = viewModel.categories.firstWhere((c) => c.name == 'Coffee');
-    
+    final coffeeCategory = viewModel.categories.firstWhere(
+      (c) => c.name == 'Coffee',
+    );
+
     // Filter by Coffee
     viewModel.setSelectedCategoryId(coffeeCategory.id);
     // Filter by "Iced"
@@ -77,7 +106,7 @@ void main() {
 
     expect(viewModel.products.length, 4);
     expect(viewModel.products.last.name, 'New Item');
-    
+
     // Should also appear in filtered list (since no filters active)
     expect(viewModel.filteredProducts.length, 4);
   });

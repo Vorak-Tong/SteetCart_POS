@@ -4,7 +4,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
 import 'package:uuid/uuid.dart';
 
 void main() {
@@ -24,7 +24,7 @@ void main() {
   testWidgets('Database persistence check', (WidgetTester tester) async {
     final repo = MenuRepository();
     final catId = const Uuid().v4();
-    
+
     // 1. Add data via Repository
     await repo.addCategory(Category(id: catId, name: 'Persistent Category'));
 
@@ -34,7 +34,7 @@ void main() {
     // 3. Simulate app reload
     // Calling init() forces the repository to re-fetch data from the SQLite database
     await repo.init();
-    
+
     // 4. Verify data is still there after reload
     // If this passes, it means the data was successfully written to the .db file
     expect(repo.categories.any((c) => c.id == catId), isTrue);

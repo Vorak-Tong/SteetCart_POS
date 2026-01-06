@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_page.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_item_card.dart';
 import '../../helpers/fake_menu_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -10,7 +11,9 @@ void main() {
   setUp(() async {
     MenuRepository.setInstance(FakeMenuRepository());
     // Seed Data
-    await MenuRepository().addModifierGroup(ModifierGroup(id: const Uuid().v4(), name: 'Ice Level'));
+    await MenuRepository().addModifierGroup(
+      ModifierGroup(id: const Uuid().v4(), name: 'Ice Level'),
+    );
   });
 
   testWidgets('ModifierPage add and edit flow', (WidgetTester tester) async {
@@ -25,11 +28,9 @@ void main() {
     });
 
     // 1. Pump ModifierPage
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: ModifierPage(),
-      ),
-    ));
+    await tester.pumpWidget(
+      const MaterialApp(home: Scaffold(body: ModifierPage())),
+    );
     await tester.pumpAndSettle();
 
     // Verify initial mock data exists
@@ -44,16 +45,20 @@ void main() {
 
     // Enter Group Name (First TextField)
     await tester.enterText(find.byType(TextField).first, 'Extra Toppings');
+    // Enter at least 1 option label (Option Label field)
+    await tester.enterText(find.byType(TextField).at(1), 'Cheese');
 
-    // Tap Create Item
-    final createButton = find.widgetWithText(FilledButton, 'Create Item');
+    // Tap Create
+    final createButton = find.widgetWithText(FilledButton, 'Create');
     await tester.scrollUntilVisible(
       createButton,
       500.0,
-      scrollable: find.descendant(
-        of: find.byType(SingleChildScrollView),
-        matching: find.byType(Scrollable),
-      ).first,
+      scrollable: find
+          .descendant(
+            of: find.byType(SingleChildScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await tester.tap(createButton);
     await tester.pumpAndSettle();
@@ -62,12 +67,15 @@ void main() {
     expect(find.text('Extra Toppings'), findsOneWidget);
 
     // 3. Edit the new Modifier Group
-    final newGroupCard = find.byKey(const ValueKey('Extra Toppings'));
+    final newGroupCard = find.ancestor(
+      of: find.text('Extra Toppings'),
+      matching: find.byType(ModifierItemCard),
+    );
     final editButton = find.descendant(
       of: newGroupCard,
       matching: find.byIcon(Icons.edit_outlined),
     );
-    
+
     await tester.tap(editButton);
     await tester.pumpAndSettle();
 
@@ -83,10 +91,12 @@ void main() {
     await tester.scrollUntilVisible(
       saveButton,
       500.0,
-      scrollable: find.descendant(
-        of: find.byType(SingleChildScrollView),
-        matching: find.byType(Scrollable),
-      ).first,
+      scrollable: find
+          .descendant(
+            of: find.byType(SingleChildScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
     );
     await tester.tap(saveButton);
     await tester.pumpAndSettle();

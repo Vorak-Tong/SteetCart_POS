@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
-import 'package:street_cart_pos/data/repositories/order_repository.dart';
+import 'package:street_cart_pos/data/repositories/cart_repository.dart';
 import 'package:street_cart_pos/main.dart' as app;
 
 import '../helpers/flow_test_helpers.dart';
@@ -76,9 +76,8 @@ void main() {
       expect(find.text('Iced Matcha Latte'), findsNothing);
 
       // Ensure draft order is removed from DB.
-      final draft = await OrderRepository().getDraftOrder();
+      final draft = await CartRepository().getDraftOrder();
       expect(draft, isNull);
     },
   );
 }
-

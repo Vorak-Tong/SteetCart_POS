@@ -159,4 +159,3 @@ class BluetoothPrinterService {
     return BluetoothDevice(fallbackName ?? 'Printer', address);
   }
 }
-

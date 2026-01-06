@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/domain/models/order.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
+import 'package:street_cart_pos/domain/models/order_product.dart';
 import 'package:street_cart_pos/domain/models/store_profile.dart';
 import 'package:street_cart_pos/ui/core/printing/bluetooth_printer_service.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';

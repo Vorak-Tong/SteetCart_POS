@@ -9,7 +9,7 @@ void setupDatabaseTests() {
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
-  
+
   // Use in-memory database to avoid file locking and speed up tests
   AppDatabase.switchToInMemoryForTesting();
 
@@ -17,11 +17,11 @@ void setupDatabaseTests() {
     // Mock path_provider (even though we use in-memory, some code might still call it)
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      const MethodChannel('plugins.flutter.io/path_provider'),
-      (MethodCall methodCall) async {
-        return '.';
-      },
-    );
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (MethodCall methodCall) async {
+            return '.';
+          },
+        );
   });
 
   setUp(() async {

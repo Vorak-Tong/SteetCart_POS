@@ -119,7 +119,12 @@ void main() {
       await createModifierGroup(
         groupName: 'Sugar',
         priceBehaviorLabel: 'No Price Change',
-        optionLabels: const ['No sugar', 'Less sugar', 'Normal sugar', 'More sugar'],
+        optionLabels: const [
+          'No sugar',
+          'Less sugar',
+          'Normal sugar',
+          'More sugar',
+        ],
       );
 
       await createModifierGroup(
@@ -171,7 +176,9 @@ void main() {
           await tester.pumpAndSettle();
         }
 
-        await tester.ensureVisible(find.widgetWithText(FilledButton, 'Create Product'));
+        await tester.ensureVisible(
+          find.widgetWithText(FilledButton, 'Create Product'),
+        );
         await tester.tap(find.widgetWithText(FilledButton, 'Create Product'));
         await tester.pumpAndSettle();
 
@@ -204,11 +211,17 @@ void main() {
       );
       expect(icedMatchaCard, findsOneWidget);
       expect(
-        find.descendant(of: icedMatchaCard, matching: find.textContaining('Sugar')),
+        find.descendant(
+          of: icedMatchaCard,
+          matching: find.textContaining('Sugar'),
+        ),
         findsOneWidget,
       );
       expect(
-        find.descendant(of: icedMatchaCard, matching: find.textContaining('Size')),
+        find.descendant(
+          of: icedMatchaCard,
+          matching: find.textContaining('Size'),
+        ),
         findsOneWidget,
       );
 

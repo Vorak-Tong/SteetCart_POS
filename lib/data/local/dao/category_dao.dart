@@ -47,10 +47,6 @@ class CategoryDao {
 
   Future<int> delete(String id) async {
     final db = await AppDatabase.instance();
-    return await db.delete(
-      tableName,
-      where: '$colId = ?',
-      whereArgs: [id],
-    );
+    return await db.delete(tableName, where: '$colId = ?', whereArgs: [id]);
   }
 }

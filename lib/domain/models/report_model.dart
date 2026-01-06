@@ -1,6 +1,5 @@
-import 'package:uuid/uuid.dart';
+import 'model_ids.dart';
 
-const uuid = Uuid();
 
 class Report {
   static final DateTime firstDate = DateTime(2020, 1, 1);

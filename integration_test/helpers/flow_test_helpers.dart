@@ -59,7 +59,10 @@ class FlowTestHelpers {
       find.byWidgetPredicate((w) => w is SegmentedButton);
 
   static Finder segmentedButtonLabelText(String label) {
-    return find.descendant(of: anySegmentedButton(), matching: find.text(label));
+    return find.descendant(
+      of: anySegmentedButton(),
+      matching: find.text(label),
+    );
   }
 
   static Future<void> openDrawer(WidgetTester tester) async {
@@ -73,7 +76,9 @@ class FlowTestHelpers {
   static Future<void> goDrawerItem(WidgetTester tester, String label) async {
     await openDrawer(tester);
     await tester.tap(
-      find.descendant(of: find.byType(Drawer), matching: find.text(label)).first,
+      find
+          .descendant(of: find.byType(Drawer), matching: find.text(label))
+          .first,
     );
     await tester.pumpAndSettle();
   }

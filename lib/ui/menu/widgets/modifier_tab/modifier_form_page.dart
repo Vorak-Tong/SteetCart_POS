@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/modifier_enums.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/modifier_option.dart';
 import 'package:street_cart_pos/ui/core/widgets/dashed_border_painter.dart';
+import 'package:uuid/uuid.dart';
 
 class ModifierFormPage extends StatefulWidget {
   const ModifierFormPage({super.key, required this.onSave, this.initialGroup});
@@ -15,6 +18,8 @@ class ModifierFormPage extends StatefulWidget {
 }
 
 class _ModifierFormPageState extends State<ModifierFormPage> {
+  static const _uuid = Uuid();
+
   final _groupNameController = TextEditingController();
   String? _priceBehavior;
   String? _selectionType;
@@ -87,7 +92,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
   void _addOption() {
     if (!_canAddOption) return;
     setState(() {
-      _optionControllers.add(_ModifierOptionController(id: uuid.v4()));
+      _optionControllers.add(_ModifierOptionController(id: _uuid.v4()));
     });
   }
 
@@ -489,7 +494,7 @@ class _ModifierFormPageState extends State<ModifierFormPage> {
 
                         final selectionType = _selectionTypeValue();
                         final group = ModifierGroup(
-                          id: widget.initialGroup?.id ?? uuid.v4(),
+                          id: widget.initialGroup?.id ?? _uuid.v4(),
                           name: name,
                           selectionType: selectionType,
                           priceBehavior: _priceBehaviorValue(),

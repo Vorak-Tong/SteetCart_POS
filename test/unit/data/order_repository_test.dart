@@ -1,9 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:street_cart_pos/data/repositories/order_repository.dart';
+import 'package:street_cart_pos/data/repositories/cart_repository.dart';
+import 'package:street_cart_pos/data/repositories/order_history_repository.dart';
 import 'package:street_cart_pos/data/repositories/product_repository.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
-import 'package:street_cart_pos/domain/models/order_model.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/order.dart';
+import 'package:street_cart_pos/domain/models/order_modifier_selection.dart';
+import 'package:street_cart_pos/domain/models/order_product.dart';
+import 'package:street_cart_pos/domain/models/payment.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import '../../helpers/database_test_helper.dart';
 import 'package:uuid/uuid.dart';
 
@@ -14,7 +18,7 @@ void main() {
     'OrderRepository: Create and Fetch Order with Items and Payment',
     () async {
       final productRepo = ProductRepository();
-      final orderRepo = OrderRepository();
+      final orderHistoryRepo = OrderHistoryRepository();
 
       // Setup: Create a product to sell
       final product = Product(
@@ -50,10 +54,10 @@ void main() {
         payment: payment,
       );
 
-      await orderRepo.createOrder(order);
+      await orderHistoryRepo.createOrder(order);
 
       // 2. Fetch and Verify
-      final orders = await orderRepo.getOrders();
+      final orders = await orderHistoryRepo.getOrders();
       expect(orders.length, 1);
 
       final savedOrder = orders.first;
@@ -65,12 +69,12 @@ void main() {
 
   test('OrderRepository: addItemToDraftOrder creates draft + item', () async {
     final productRepo = ProductRepository();
-    final orderRepo = OrderRepository();
+    final cartRepo = CartRepository();
 
     final product = Product(id: const Uuid().v4(), name: 'Tea', basePrice: 2.0);
     await productRepo.createProduct(product);
 
-    await orderRepo.addItemToDraftOrder(
+    await cartRepo.addItemToDraftOrder(
       product: product,
       quantity: 2,
       unitPrice: 2.5,
@@ -80,7 +84,7 @@ void main() {
       note: 'No ice',
     );
 
-    final draft = await orderRepo.getDraftOrder();
+    final draft = await cartRepo.getDraftOrder();
     expect(draft, isNotNull);
     expect(draft!.cartStatus, CartStatus.draft);
     expect(draft.orderStatus, isNull);
@@ -94,12 +98,13 @@ void main() {
 
   test('OrderRepository: finalizeDraftOrder sets statuses + payment', () async {
     final productRepo = ProductRepository();
-    final orderRepo = OrderRepository();
+    final cartRepo = CartRepository();
+    final orderHistoryRepo = OrderHistoryRepository();
 
     final product = Product(id: const Uuid().v4(), name: 'Tea', basePrice: 2.0);
     await productRepo.createProduct(product);
 
-    await orderRepo.addItemToDraftOrder(
+    await cartRepo.addItemToDraftOrder(
       product: product,
       quantity: 1,
       unitPrice: 2.0,
@@ -107,7 +112,7 @@ void main() {
       note: '',
     );
 
-    final draft = await orderRepo.getDraftOrder();
+    final draft = await cartRepo.getDraftOrder();
     expect(draft, isNotNull);
 
     final payment = Payment(
@@ -118,8 +123,9 @@ void main() {
       changeUSD: 3.0,
     );
 
-    await orderRepo.finalizeDraftOrder(
+    await cartRepo.checkoutDraftOrder(
       orderId: draft!.id,
+      finalizedAt: DateTime.now(),
       orderType: OrderType.dineIn,
       paymentType: PaymentMethod.cash,
       payment: payment,
@@ -128,9 +134,9 @@ void main() {
       roundingModeApplied: RoundingMode.roundUp,
     );
 
-    expect(await orderRepo.getDraftOrder(), isNull);
+    expect(await cartRepo.getDraftOrder(), isNull);
 
-    final orders = await orderRepo.getOrders();
+    final orders = await orderHistoryRepo.getOrders();
     expect(orders, hasLength(1));
     expect(orders.first.cartStatus, CartStatus.finalized);
     expect(orders.first.orderStatus, OrderStatus.inPrep);
@@ -138,7 +144,7 @@ void main() {
   });
 
   test('OrderRepository: Update and Delete Order', () async {
-    final orderRepo = OrderRepository();
+    final orderHistoryRepo = OrderHistoryRepository();
 
     // 1. Create Initial Order
     final order = Order(
@@ -150,7 +156,7 @@ void main() {
       orderStatus: OrderStatus.inPrep,
       orderProducts: [],
     );
-    await orderRepo.createOrder(order);
+    await orderHistoryRepo.createOrder(order);
 
     // 2. Update Status
     final updatedOrder = Order(
@@ -162,14 +168,14 @@ void main() {
       orderStatus: OrderStatus.ready, // Changed
       orderProducts: [],
     );
-    await orderRepo.updateOrder(updatedOrder);
+    await orderHistoryRepo.updateOrder(updatedOrder);
 
-    final fetched = (await orderRepo.getOrders()).first;
+    final fetched = (await orderHistoryRepo.getOrders()).first;
     expect(fetched.cartStatus, CartStatus.finalized);
     expect(fetched.orderStatus, OrderStatus.ready);
 
     // 3. Delete
-    await orderRepo.deleteOrder(order.id);
-    expect(await orderRepo.getOrders(), isEmpty);
+    await orderHistoryRepo.deleteOrder(order.id);
+    expect(await orderHistoryRepo.getOrders(), isEmpty);
   });
 }

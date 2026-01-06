@@ -28,15 +28,33 @@ class BottomNavGenerator extends StatelessWidget {
     switch (tabSet) {
       case FeatureTabSet.sale:
         return const [
-          BottomNavigationBarItem(icon: Icon(Icons.point_of_sale), label: 'Sale'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Order'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.point_of_sale),
+            label: 'Sale',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Order',
+          ),
         ];
       case FeatureTabSet.menu:
         return const [
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant_menu), label: 'Menu'),
-          BottomNavigationBarItem(icon: Icon(Icons.category), label: 'Category'),
-          BottomNavigationBarItem(icon: Icon(Icons.local_drink), label: 'Modifier'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant_menu),
+            label: 'Menu',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.category),
+            label: 'Category',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_drink),
+            label: 'Modifier',
+          ),
         ];
     }
   }

@@ -6,14 +6,16 @@ import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_list_view.dart';
 import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_status_filter_bar.dart';
 
 class OrderPage extends StatefulWidget {
-  const OrderPage({super.key});
+  const OrderPage({super.key, this.viewModel});
+
+  final OrderViewModel? viewModel;
 
   @override
   State<OrderPage> createState() => _OrderPageState();
 }
 
 class _OrderPageState extends State<OrderPage> {
-  late final OrderViewModel _viewModel = OrderViewModel();
+  late final OrderViewModel _viewModel = widget.viewModel ?? OrderViewModel();
 
   void _onTabIndexChanged() {
     if (saleTabIndex.value == 2) {
@@ -30,7 +32,9 @@ class _OrderPageState extends State<OrderPage> {
   @override
   void dispose() {
     saleTabIndex.removeListener(_onTabIndexChanged);
-    _viewModel.dispose();
+    if (widget.viewModel == null) {
+      _viewModel.dispose();
+    }
     super.dispose();
   }
 

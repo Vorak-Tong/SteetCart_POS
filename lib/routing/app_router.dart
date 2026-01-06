@@ -34,7 +34,7 @@ final GoRouter appRouter = GoRouter(
           name: 'menu',
           builder: (context, state) => const MenuTabSelector(),
         ),
-         GoRoute(
+        GoRoute(
           path: '/report',
           name: 'report',
           builder: (context, state) => const ReportPage(),

@@ -9,11 +9,8 @@ class PrinterSettingsPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Printer')),
       body: const Padding(
         padding: EdgeInsets.all(16),
-        child: Text(
-          'Bluetooth printing is not supported on this platform.',
-        ),
+        child: Text('Bluetooth printing is not supported on this platform.'),
       ),
     );
   }
 }
-

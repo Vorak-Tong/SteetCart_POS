@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_image.dart';
-// import 'package:modular_pos/core/widgets/network_image_helper_stub.dart'
-//     if (dart.library.html) 'package:modular_pos/core/widgets/network_image_helper_web.dart';
 
 /// Card for a menu item with image, category, and price.
 class ProductItemCard extends StatelessWidget {
@@ -43,12 +41,6 @@ class ProductItemCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    // imagePath != null && imagePath!.isNotEmpty
-                    //     ? buildAdaptiveNetworkImage(
-                    //         imagePath!,
-                    //         _buildPlaceholder(context),
-                    //       )
-                    //     : _buildPlaceholder(context),
                     ProductImage(imagePath: imagePath),
                     Positioned.fill(
                       child: GestureDetector(

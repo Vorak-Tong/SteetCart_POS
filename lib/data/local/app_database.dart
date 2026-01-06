@@ -10,6 +10,7 @@ class AppDatabase {
   static const _dbVersion = 18;
 
   static Database? _db;
+  static Future<Database>? _opening;
 
   static String? _testPath;
 
@@ -23,20 +24,35 @@ class AppDatabase {
       return _db!;
     }
 
+    final opening = _opening;
+    if (opening != null) {
+      return opening;
+    }
+
     String dbPath = _testPath ?? '';
     if (dbPath.isEmpty) {
       final directory = await getApplicationSupportDirectory();
       dbPath = p.join(directory.path, _dbName);
     }
-    _db = await openDatabase(
-      dbPath,
-      version: _dbVersion,
-      onConfigure: _onConfigure,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
 
-    return _db!;
+    final future =
+        openDatabase(
+              dbPath,
+              version: _dbVersion,
+              onConfigure: _onConfigure,
+              onCreate: _onCreate,
+              onUpgrade: _onUpgrade,
+            )
+            .then((db) {
+              _db = db;
+              return db;
+            })
+            .whenComplete(() {
+              _opening = null;
+            });
+
+    _opening = future;
+    return future;
   }
 
   static Future<void> _onConfigure(Database db) async {
@@ -236,6 +252,14 @@ class AppDatabase {
   }
 
   static Future<void> close() async {
+    final opening = _opening;
+    if (opening != null) {
+      final db = await opening;
+      await db.close();
+      _db = null;
+      return;
+    }
+
     final db = _db;
     if (db == null) {
       return;

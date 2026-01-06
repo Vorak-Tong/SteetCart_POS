@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:street_cart_pos/data/repositories/category_repository.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
 import '../../helpers/database_test_helper.dart';
 import 'package:uuid/uuid.dart';
 
@@ -23,7 +23,7 @@ void main() {
     // If your repo uses saveCategory for both, we test that.
     final updatedCategory = Category(id: category.id, name: 'Super Snacks');
     await repo.saveCategory(updatedCategory);
-    
+
     final fetchedUpdated = (await repo.getCategories()).first;
     expect(fetchedUpdated.name, 'Super Snacks');
 

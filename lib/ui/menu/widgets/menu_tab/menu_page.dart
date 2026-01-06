@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/domain/models/category.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/core/widgets/add_new_button.dart';
 import 'package:street_cart_pos/ui/core/widgets/category_filter_chips.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_search_bar.dart';

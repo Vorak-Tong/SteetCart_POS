@@ -3,7 +3,11 @@ import '../local/dao/category_dao.dart';
 import '../local/dao/modifier_dao.dart';
 import '../local/dao/product_dao.dart';
 import '../local/dao/product_modifier_group_dao.dart';
-import '../../domain/models/product_model.dart';
+import '../../domain/models/category.dart';
+import '../../domain/models/modifier_enums.dart';
+import '../../domain/models/modifier_group.dart';
+import '../../domain/models/modifier_option.dart';
+import '../../domain/models/product.dart';
 
 class ProductRepository {
   final _productDao = ProductDao();

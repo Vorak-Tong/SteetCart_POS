@@ -1,14 +1,16 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier, setEquals;
-import 'package:street_cart_pos/data/repositories/order_repository.dart';
-import 'package:street_cart_pos/domain/models/order_model.dart';
-import 'package:street_cart_pos/domain/models/product_model.dart';
+import 'package:street_cart_pos/data/repositories/cart_repository.dart';
+import 'package:street_cart_pos/domain/models/order_modifier_selection.dart';
+import 'package:street_cart_pos/domain/models/modifier_enums.dart';
+import 'package:street_cart_pos/domain/models/modifier_group.dart';
+import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/utils/command.dart';
 
 class ProductSelectionViewModel extends ChangeNotifier {
   ProductSelectionViewModel({
     required this.product,
-    OrderRepository? orderRepository,
-  }) : _orderRepository = orderRepository ?? OrderRepository() {
+    CartRepository? cartRepository,
+  }) : _cartRepository = cartRepository ?? CartRepository() {
     _selectedOptionIdsByGroupId = _initSelections(product);
 
     addToCartCommand = CommandWithParam((_) => _addToCart());
@@ -16,7 +18,7 @@ class ProductSelectionViewModel extends ChangeNotifier {
   }
 
   final Product product;
-  final OrderRepository _orderRepository;
+  final CartRepository _cartRepository;
 
   late final CommandWithParam<void, void> addToCartCommand;
 
@@ -82,7 +84,7 @@ class ProductSelectionViewModel extends ChangeNotifier {
   Future<void> addToCart() => addToCartCommand.execute(null);
 
   Future<void> _addToCart() async {
-    await _orderRepository.addItemToDraftOrder(
+    await _cartRepository.addItemToDraftOrder(
       product: product,
       quantity: _quantity,
       unitPrice: unitTotal,

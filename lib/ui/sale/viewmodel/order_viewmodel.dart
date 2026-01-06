@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
 import 'package:flutter/material.dart' show DateUtils;
-import 'package:street_cart_pos/data/repositories/order_repository.dart';
+import 'package:street_cart_pos/data/repositories/order_history_repository.dart';
 import 'package:street_cart_pos/data/repositories/sale_policy_repository.dart';
 import 'package:street_cart_pos/data/repositories/store_profile_repository.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
-import 'package:street_cart_pos/domain/models/order_model.dart';
+import 'package:street_cart_pos/domain/models/order.dart';
 import 'package:street_cart_pos/domain/models/sale_policy.dart';
 import 'package:street_cart_pos/domain/models/store_profile.dart';
 import 'package:street_cart_pos/utils/command.dart';
@@ -12,10 +12,11 @@ import 'package:street_cart_pos/utils/command.dart';
 class OrderViewModel extends ChangeNotifier {
   OrderViewModel({
     DateTime? initialDate,
-    OrderRepository? orderRepository,
+    OrderHistoryRepository? orderHistoryRepository,
     SalePolicyRepository? salePolicyRepository,
     StoreProfileRepository? storeProfileRepository,
-  }) : _orderRepository = orderRepository ?? OrderRepository(),
+  }) : _orderHistoryRepository =
+           orderHistoryRepository ?? OrderHistoryRepository(),
        _salePolicyRepository =
            salePolicyRepository ?? SalePolicyRepositoryImpl(),
        _storeProfileRepository =
@@ -33,7 +34,7 @@ class OrderViewModel extends ChangeNotifier {
     loadOrdersCommand.execute(null);
   }
 
-  final OrderRepository _orderRepository;
+  final OrderHistoryRepository _orderHistoryRepository;
   final SalePolicyRepository _salePolicyRepository;
   final StoreProfileRepository _storeProfileRepository;
 
@@ -136,14 +137,9 @@ class OrderViewModel extends ChangeNotifier {
   );
 
   Future<void> _loadOrders() async {
-    final results = await Future.wait<Object?>([
-      _orderRepository.getOrders(),
-      _salePolicyRepository.getSalePolicy(),
-      _storeProfileRepository.getStoreProfile(),
-    ]);
-    _orders = results[0] as List<Order>;
-    _policy = results[1] as SalePolicy;
-    _storeProfile = results[2] as StoreProfile;
+    _orders = await _orderHistoryRepository.getOrders();
+    _policy = await _salePolicyRepository.getSalePolicy();
+    _storeProfile = await _storeProfileRepository.getStoreProfile();
     _expandedOrderIds.removeWhere((id) => !_orders.any((o) => o.id == id));
     _hasLoadedOnce = true;
     notifyListeners();
@@ -167,11 +163,7 @@ class OrderViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _orderRepository.updateOrderMeta(
-        orderId,
-        cartStatus: CartStatus.finalized,
-        orderStatus: status,
-      );
+      await _orderHistoryRepository.updateOrderStatus(orderId, status);
     } catch (_) {
       await refreshFromDb();
       rethrow;
