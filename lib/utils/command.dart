@@ -9,6 +9,9 @@ class CommandWithParam<P, R> extends ChangeNotifier {
   bool _running = false;
   bool get running => _running;
 
+  bool _hasQueued = false;
+  P? _queuedParam;
+
   Object? _error;
   Object? get error => _error;
   bool get hasError => _error != null;
@@ -25,22 +28,37 @@ class CommandWithParam<P, R> extends ChangeNotifier {
 
   // Execute now accepts a parameter of type P
   Future<void> execute(P param) async {
-    if (_running) return;
-    _running = true;
-    _error = null;
-    _stackTrace = null;
-    notifyListeners();
+    if (_running) {
+      _queuedParam = param;
+      _hasQueued = true;
+      return;
+    }
 
-    try {
-      await _action(param);
-    } catch (e, st) {
-      _error = e;
-      _stackTrace = st;
+    var currentParam = param;
+    while (true) {
+      _running = true;
+      _error = null;
+      _stackTrace = null;
       notifyListeners();
-      rethrow;
-    } finally {
-      _running = false;
-      notifyListeners();
+
+      try {
+        await _action(currentParam);
+      } catch (e, st) {
+        _error = e;
+        _stackTrace = st;
+        notifyListeners();
+        rethrow;
+      } finally {
+        _running = false;
+        notifyListeners();
+      }
+
+      if (!_hasQueued) {
+        break;
+      }
+      currentParam = _queuedParam as P;
+      _queuedParam = null;
+      _hasQueued = false;
     }
   }
 }

@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:street_cart_pos/domain/models/order_model.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
 import 'package:street_cart_pos/domain/models/store_profile.dart';
+import 'package:street_cart_pos/ui/core/printing/bluetooth_printer_service.dart';
 import 'package:street_cart_pos/ui/core/utils/number_format.dart';
+import 'package:street_cart_pos/ui/policy/widgets/printer_settings_page.dart';
+import 'package:street_cart_pos/ui/core/printing/receipt_escpos_builder.dart';
 
 Future<void> showReceiptPreviewSheet(
   BuildContext context, {
@@ -49,26 +52,123 @@ class ReceiptPreviewSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return _ReceiptPreviewBody(
+      order: order,
+      displayNumber: displayNumber,
+      vatPercent: vatPercent,
+      exchangeRateKhrPerUsd: exchangeRateKhrPerUsd,
+      roundingMode: roundingMode,
+      storeProfile: storeProfile,
+    );
+  }
+}
+
+class _ReceiptPreviewBody extends StatefulWidget {
+  const _ReceiptPreviewBody({
+    required this.order,
+    required this.displayNumber,
+    required this.vatPercent,
+    required this.exchangeRateKhrPerUsd,
+    required this.roundingMode,
+    required this.storeProfile,
+  });
+
+  final Order order;
+  final int? displayNumber;
+  final int vatPercent;
+  final int exchangeRateKhrPerUsd;
+  final RoundingMode roundingMode;
+  final StoreProfile storeProfile;
+
+  @override
+  State<_ReceiptPreviewBody> createState() => _ReceiptPreviewBodyState();
+}
+
+class _ReceiptPreviewBodyState extends State<_ReceiptPreviewBody> {
+  final BluetoothPrinterService _printerService = BluetoothPrinterService();
+  final ReceiptEscPosBuilder _builder = ReceiptEscPosBuilder();
+
+  bool _printing = false;
+
+  Future<void> _print() async {
+    if (_printing) return;
+    setState(() => _printing = true);
+
+    try {
+      final settings = await _printerService.getSettings();
+      if (!settings.isConfigured) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a printer first.')),
+        );
+        await Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const PrinterSettingsPage()));
+        return;
+      }
+
+      if (!mounted) return;
+      final time = MaterialLocalizations.of(context).formatTimeOfDay(
+        TimeOfDay.fromDateTime(widget.order.timeStamp),
+        alwaysUse24HourFormat: true,
+      );
+      final date = MaterialLocalizations.of(
+        context,
+      ).formatShortDate(widget.order.timeStamp);
+
+      final payload = _builder.build(
+        storeProfile: widget.storeProfile,
+        order: widget.order,
+        printerSettings: settings,
+        displayNumber: widget.displayNumber,
+        vatPercent: widget.vatPercent,
+        exchangeRateKhrPerUsd: widget.exchangeRateKhrPerUsd,
+        roundingMode: widget.roundingMode,
+        formattedDate: date,
+        formattedTime: time,
+      );
+
+      await _printerService.printBytes(payload);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Print sent.')));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Print failed: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _printing = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final subtotal = order.getTotal();
-    final vatRate = (vatPercent.clamp(0, 100)) / 100.0;
+    final subtotal = widget.order.getTotal();
+    final vatRate = (widget.vatPercent.clamp(0, 100)) / 100.0;
     final vat = subtotal * vatRate;
     final totalUsd = subtotal + vat;
     final totalKhr = _toKhr(
       totalUsd,
-      exchangeRateKhrPerUsd: exchangeRateKhrPerUsd,
-      roundingMode: roundingMode,
+      exchangeRateKhrPerUsd: widget.exchangeRateKhrPerUsd,
+      roundingMode: widget.roundingMode,
     );
 
     final time = MaterialLocalizations.of(context).formatTimeOfDay(
-      TimeOfDay.fromDateTime(order.timeStamp),
+      TimeOfDay.fromDateTime(widget.order.timeStamp),
       alwaysUse24HourFormat: true,
     );
     final date = MaterialLocalizations.of(
       context,
-    ).formatShortDate(order.timeStamp);
+    ).formatShortDate(widget.order.timeStamp);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -111,7 +211,7 @@ class ReceiptPreviewSheet extends StatelessWidget {
                         Align(
                           alignment: Alignment.center,
                           child: Text(
-                            storeProfile.name,
+                            widget.storeProfile.name,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
@@ -119,28 +219,28 @@ class ReceiptPreviewSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          storeProfile.phone,
+                          widget.storeProfile.phone,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                         Text(
-                          storeProfile.address,
+                          widget.storeProfile.address,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          displayNumber == null
+                          widget.displayNumber == null
                               ? 'Order'
-                              : 'Order $displayNumber',
+                              : 'Order ${widget.displayNumber}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         Text(
-                          'ID: ${order.id}',
+                          'ID: ${widget.order.id}',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -150,7 +250,7 @@ class ReceiptPreviewSheet extends StatelessWidget {
                         const SizedBox(height: 12),
                         const Divider(height: 1),
                         const SizedBox(height: 12),
-                        for (final item in order.orderProducts) ...[
+                        for (final item in widget.order.orderProducts) ...[
                           _ReceiptLineItem(item: item),
                           const SizedBox(height: 8),
                         ],
@@ -162,13 +262,13 @@ class ReceiptPreviewSheet extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         _AmountRow(
-                          label: 'VAT ($vatPercent%)',
+                          label: 'VAT (${widget.vatPercent}%)',
                           value: formatUsd(vat),
                         ),
                         const SizedBox(height: 4),
                         _AmountRow(
                           label:
-                              'Rate (1 USD = ${formatIntWithThousandsSeparator(exchangeRateKhrPerUsd)} KHR)',
+                              'Rate (1 USD = ${formatIntWithThousandsSeparator(widget.exchangeRateKhrPerUsd)} KHR)',
                           value: '',
                         ),
                         const SizedBox(height: 8),
@@ -189,7 +289,7 @@ class ReceiptPreviewSheet extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (order.payment != null) ...[
+                        if (widget.order.payment != null) ...[
                           const SizedBox(height: 12),
                           const Divider(height: 1),
                           const SizedBox(height: 12),
@@ -200,15 +300,15 @@ class ReceiptPreviewSheet extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          Text('Method: ${order.payment!.type.name}'),
+                          Text('Method: ${widget.order.payment!.type.name}'),
                           Text(
-                            'Receive USD: ${formatUsd(order.payment!.recieveAmountUSD)}',
+                            'Receive USD: ${formatUsd(widget.order.payment!.recieveAmountUSD)}',
                           ),
                           Text(
-                            'Receive KHR: ${formatKhr(order.payment!.recieveAmountKHR)}',
+                            'Receive KHR: ${formatKhr(widget.order.payment!.recieveAmountKHR)}',
                           ),
                           Text(
-                            'Change KHR: ${formatKhr(order.payment!.changeKhr)}',
+                            'Change KHR: ${formatKhr(widget.order.payment!.changeKhr)}',
                           ),
                         ],
                       ],
@@ -220,9 +320,9 @@ class ReceiptPreviewSheet extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           FilledButton.icon(
-            onPressed: null,
+            onPressed: _printing ? null : _print,
             icon: const Icon(Icons.print_outlined),
-            label: const Text('Print (coming soon)'),
+            label: Text(_printing ? 'Printing...' : 'Print'),
           ),
         ],
       ),

@@ -296,6 +296,7 @@ class OrderRepository {
 
   Future<void> finalizeDraftOrder({
     required String orderId,
+    required DateTime finalizedAt,
     required OrderType orderType,
     required PaymentMethod paymentType,
     required Payment payment,
@@ -307,7 +308,7 @@ class OrderRepository {
     await db.transaction((txn) async {
       final orderUpdate = <String, Object?>{
         OrderDao.colId: orderId,
-        OrderDao.colTimeStamp: DateTime.now().millisecondsSinceEpoch,
+        OrderDao.colTimeStamp: finalizedAt.millisecondsSinceEpoch,
         OrderDao.colOrderType: orderType.name,
         OrderDao.colPaymentType: paymentType.name,
         OrderDao.colCartStatus: CartStatus.finalized.name,
@@ -330,6 +331,31 @@ class OrderRepository {
         PaymentDao.colChangeUsd: payment.changeUSD,
       }, txn: txn);
     });
+  }
+
+  Future<int> getFinalizedOrderCountForDay(DateTime day) async {
+    final db = await AppDatabase.instance();
+    final start = DateTime(day.year, day.month, day.day);
+    final end = start.add(const Duration(days: 1));
+
+    final results = await db.rawQuery(
+      '''
+      SELECT COUNT(*) AS c
+      FROM orders
+      WHERE cart_status = ?
+        AND order_status IS NOT NULL
+        AND timestamp >= ?
+        AND timestamp < ?
+      ''',
+      [
+        CartStatus.finalized.name,
+        start.millisecondsSinceEpoch,
+        end.millisecondsSinceEpoch,
+      ],
+    );
+
+    if (results.isEmpty) return 0;
+    return (results.first['c'] as num?)?.toInt() ?? 0;
   }
 
   Future<Order> _hydrateOrderFromRow(Map<String, Object?> row) async {

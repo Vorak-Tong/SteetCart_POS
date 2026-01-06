@@ -1,18 +1,30 @@
-import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'dart:async' show unawaited;
+
+import 'package:flutter/foundation.dart' show ChangeNotifier, debugPrint;
+import 'package:street_cart_pos/data/repositories/store_profile_repository.dart';
 import 'package:street_cart_pos/data/repositories/order_repository.dart';
 import 'package:street_cart_pos/data/repositories/sale_policy_repository.dart';
 import 'package:street_cart_pos/domain/models/enums.dart';
 import 'package:street_cart_pos/domain/models/order_model.dart';
 import 'package:street_cart_pos/domain/models/sale_policy.dart';
+import 'package:street_cart_pos/ui/core/printing/bluetooth_printer_service.dart';
+import 'package:street_cart_pos/ui/core/printing/receipt_escpos_builder.dart';
 import 'package:street_cart_pos/utils/command.dart';
 
 class CartViewModel extends ChangeNotifier {
   CartViewModel({
     OrderRepository? orderRepository,
     SalePolicyRepository? salePolicyRepository,
+    StoreProfileRepository? storeProfileRepository,
+    BluetoothPrinterService? printerService,
+    ReceiptEscPosBuilder? receiptBuilder,
   }) : _orderRepository = orderRepository ?? OrderRepository(),
        _salePolicyRepository =
-           salePolicyRepository ?? SalePolicyRepositoryImpl() {
+           salePolicyRepository ?? SalePolicyRepositoryImpl(),
+       _storeProfileRepository =
+           storeProfileRepository ?? StoreProfileRepositoryImpl(),
+       _printerService = printerService ?? BluetoothPrinterService(),
+       _receiptBuilder = receiptBuilder ?? const ReceiptEscPosBuilder() {
     loadCartCommand = CommandWithParam((_) => _loadCart());
     checkoutCommand = CommandWithParam((_) => _checkout());
     clearCartCommand = CommandWithParam((_) => _clearCart());
@@ -26,6 +38,9 @@ class CartViewModel extends ChangeNotifier {
 
   final OrderRepository _orderRepository;
   final SalePolicyRepository _salePolicyRepository;
+  final StoreProfileRepository _storeProfileRepository;
+  final BluetoothPrinterService _printerService;
+  final ReceiptEscPosBuilder _receiptBuilder;
 
   SalePolicy _policy = const SalePolicy(vat: 0, exchangeRate: 4000);
 
@@ -133,11 +148,11 @@ class CartViewModel extends ChangeNotifier {
     if (order == null) {
       return;
     }
-    if (!canCheckout) {
-      return;
-    }
+    if (items.isEmpty) return;
+    if (!hasSufficientPayment) return;
 
     try {
+      final finalizedAt = DateTime.now();
       final receiveUsd = _hasValidReceivedUsd ? _receivedUsd! : 0.0;
       final receiveKhr = _hasValidReceivedKhr ? _receivedKhr! : 0;
 
@@ -158,8 +173,23 @@ class CartViewModel extends ChangeNotifier {
         changeUSD: changeUsd,
       );
 
+      final receiptOrder = Order(
+        id: order.id,
+        timeStamp: finalizedAt,
+        orderType: order.orderType,
+        paymentType: order.paymentType,
+        cartStatus: CartStatus.finalized,
+        orderStatus: OrderStatus.inPrep,
+        vatPercentApplied: vatPercent,
+        usdToKhrRateApplied: exchangeRateKhrPerUsd,
+        roundingModeApplied: roundingMode,
+        payment: payment,
+        orderProducts: List<OrderProduct>.unmodifiable(order.orderProducts),
+      );
+
       await _orderRepository.finalizeDraftOrder(
         orderId: order.id,
+        finalizedAt: finalizedAt,
         orderType: order.orderType,
         paymentType: order.paymentType,
         payment: payment,
@@ -174,7 +204,57 @@ class CartViewModel extends ChangeNotifier {
       _receivedUsdError = null;
       _receivedKhrError = null;
       notifyListeners();
+
+      unawaited(
+        _autoPrintReceiptIfAvailable(
+          receiptOrder,
+          vatPercent: vatPercent,
+          exchangeRateKhrPerUsd: exchangeRateKhrPerUsd,
+          roundingMode: roundingMode,
+        ),
+      );
     } finally {}
+  }
+
+  Future<void> _autoPrintReceiptIfAvailable(
+    Order receiptOrder, {
+    required int vatPercent,
+    required int exchangeRateKhrPerUsd,
+    required RoundingMode roundingMode,
+  }) async {
+    try {
+      final printerSettings = await _printerService.getSettings();
+      if (!printerSettings.isConfigured) {
+        debugPrint('Auto-print skipped: no printer configured.');
+        return;
+      }
+
+      final displayNumber = await _orderRepository.getFinalizedOrderCountForDay(
+        receiptOrder.timeStamp,
+      );
+      final storeProfile = await _storeProfileRepository.getStoreProfile();
+      final payload = _receiptBuilder.build(
+        storeProfile: storeProfile,
+        order: receiptOrder,
+        printerSettings: printerSettings,
+        displayNumber: displayNumber == 0 ? null : displayNumber,
+        vatPercent: vatPercent,
+        exchangeRateKhrPerUsd: exchangeRateKhrPerUsd,
+        roundingMode: roundingMode,
+      );
+
+      await _printerService.printBytes(
+        payload,
+        bluetoothMacAddress: printerSettings.bluetoothMacAddress,
+      );
+      debugPrint(
+        'Auto-print sent to ${printerSettings.deviceName ?? 'printer'} '
+        '(${printerSettings.bluetoothMacAddress}).',
+      );
+    } catch (_) {
+      // Checkout should remain successful even if printing fails.
+      debugPrint('Auto-print failed (ignored).');
+    }
   }
 
   void setOrderType(OrderType type) {

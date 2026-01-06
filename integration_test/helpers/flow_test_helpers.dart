@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:street_cart_pos/data/local/app_database.dart';
 import 'package:street_cart_pos/ui/core/widgets/product_item_card.dart';
-import 'package:street_cart_pos/ui/menu/menu_tab_state.dart';
-import 'package:street_cart_pos/ui/sale/sale_tab_state.dart';
+import 'package:street_cart_pos/ui/menu/utils/menu_tab_state.dart';
+import 'package:street_cart_pos/ui/sale/utils/sale_tab_state.dart';
 
 class FlowTestHelpers {
   static Future<void> configureSqfliteForPlatform() async {

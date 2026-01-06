@@ -7,7 +7,7 @@ class AppDatabase {
   AppDatabase._();
 
   static const _dbName = 'street_cart_pos_v3.db';
-  static const _dbVersion = 17;
+  static const _dbVersion = 18;
 
   static Database? _db;
 
@@ -176,6 +176,18 @@ class AppDatabase {
       )
     ''');
 
+    // 9. Printer Settings
+    await db.execute('''
+      CREATE TABLE printer_settings (
+        id INTEGER PRIMARY KEY,
+        device_name TEXT,
+        bluetooth_mac TEXT,
+        paper_width_mm INTEGER NOT NULL DEFAULT 58,
+        dots_per_line INTEGER NOT NULL DEFAULT 384,
+        chars_per_line INTEGER NOT NULL DEFAULT 32
+      )
+    ''');
+
     // 9. Store Profile
     await db.execute('''
       CREATE TABLE store_profiles (
@@ -197,6 +209,7 @@ class AppDatabase {
     await db.transaction((txn) async {
       await txn.execute('PRAGMA foreign_keys = OFF');
       await txn.execute('DROP TABLE IF EXISTS store_profiles');
+      await txn.execute('DROP TABLE IF EXISTS printer_settings');
       await txn.execute('DROP TABLE IF EXISTS sale_policies');
       await txn.execute('DROP TABLE IF EXISTS payments');
       await txn.execute('DROP TABLE IF EXISTS order_items');
