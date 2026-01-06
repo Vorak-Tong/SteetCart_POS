@@ -97,9 +97,10 @@ class _CartPageState extends State<CartPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (_viewModel.hasLoadedOnce &&
-            !_viewModel.loading &&
-            _viewModel.items.isEmpty) {
+        final hasDraftOrder = _viewModel.hasDraftOrder;
+        final hasCart = hasDraftOrder && _viewModel.items.isNotEmpty;
+
+        if (!hasCart) {
           _clearPaymentInputs();
           return Padding(
             padding: const EdgeInsets.all(16),
@@ -143,13 +144,6 @@ class _CartPageState extends State<CartPage> {
                 }
               },
             ),
-            if (_viewModel.loading && !_viewModel.hasLoadedOnce)
-              Positioned.fill(
-                child: ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-              ),
           ],
         );
       },
