@@ -1,21 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:street_cart_pos/ui/sale/sale_tab_state.dart';
-import 'package:street_cart_pos/ui/sale/widgets/cart_page.dart';
-import 'package:street_cart_pos/ui/sale/widgets/order_page.dart';
-import 'package:street_cart_pos/ui/sale/widgets/sale_page.dart';
+import 'package:street_cart_pos/ui/sale/utils/sale_tab_state.dart';
+import 'package:street_cart_pos/ui/sale/widgets/cart_tab/cart_page.dart';
+import 'package:street_cart_pos/ui/sale/widgets/order_tab/order_page.dart';
+import 'package:street_cart_pos/ui/sale/widgets/sale_tab/sale_page.dart';
 
 enum SaleTab { sale, cart, order }
 
-class SaleTabSelector extends StatelessWidget {
+class SaleTabSelector extends StatefulWidget {
   const SaleTabSelector({super.key});
 
   @override
+  State<SaleTabSelector> createState() => _SaleTabSelectorState();
+}
+
+class _SaleTabSelectorState extends State<SaleTabSelector> {
+  @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: saleTabIndex,
-      builder: (context, index, _) {
+    return ListenableBuilder(
+      listenable: saleTabIndex,
+      builder: (context, _) {
         return IndexedStack(
-          index: index,
+          index: saleTabIndex.value,
           children: const [SalePage(), CartPage(), OrderPage()],
         );
       },
