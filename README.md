@@ -1,7 +1,8 @@
 # Street Cart POS
-CADT, GEN 10 - SE, Mobile Development Class
-Lecturer & Instructor: Mr. Ronan Ogor
-Project: Street Cart POS
+
+CADT, GEN 10 - SE, Mobile Development Class <br>
+Lecturer & Instructor: Mr. Ronan Ogor <br>
+Project: Street Cart POS <br>
 By: Tong Vorak & Lim Ieangzorng
 
 ## About Project
