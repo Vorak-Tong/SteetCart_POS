@@ -1,16 +1,25 @@
-# street_cart_pos
+# Street Cart POS
+CADT, GEN 10 - SE, Mobile Development Class
+Lecturer & Instructor: Mr. Ronan Ogor
+Project: Street Cart POS
+By: Tong Vorak & Lim Ieangzorng
 
-A new Flutter project.
+## About Project
+This project is made as instructed by our lecturer to assess our understanding regarding understanding the use of stateful and stateless widget, layered architecture, good UI/UX design, and some system design thinking. 
 
-## Getting Started
+### Description
 
-This project is a starting point for a Flutter application.
+Street Cart POS is a mobile application for android that provides very basic features, specifically targeted for small vendors that focus primarily on tracking selling and printing receipt.
 
-A few resources to get you started if this is your first Flutter project:
+#### Feature
+- Offline
+- Product management
+- Processing order and payment
+- Reporting
+- Printing (BONUS)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+#### Out of scope (excluded features)
+- authentication
+- cloud storage
+- caching
+- processing payment with third party payway
