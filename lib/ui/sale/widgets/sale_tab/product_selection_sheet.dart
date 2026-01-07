@@ -162,7 +162,7 @@ class _ProductSelectionViewState extends State<ProductSelectionView> {
             children: [
               if (widget.onClose != null)
                 Align(
-                  alignment: Alignment.centerRight,
+                  alignment: Alignment.centerLeft,
                   child: IconButton(
                     tooltip: 'Close',
                     onPressed: widget.onClose,

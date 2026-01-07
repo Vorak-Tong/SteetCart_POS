@@ -68,6 +68,16 @@ class AppDrawer extends StatelessWidget {
                   },
                 ),
               ],
+              
+            ),
+          ),
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "CADT, GEN 10 - SE, Mobile Development\nInstructor: Ronan Ogor (The Best)\nProject: Street Cart POS\nBy: Tong Vorak & Lim Ieangzorng",
+              ),
             ),
           ),
           const Divider(height: 1),
