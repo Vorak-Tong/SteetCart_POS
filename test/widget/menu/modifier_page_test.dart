@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:street_cart_pos/data/repositories/menu_repository.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_page.dart';
 import 'package:street_cart_pos/domain/models/modifier_group.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_item_card.dart';
+import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_form_page.dart';
+import 'package:street_cart_pos/ui/menu/utils/modifier_form_route_args.dart';
 import '../../helpers/fake_menu_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -27,9 +30,35 @@ void main() {
       tester.platformDispatcher.clearTextScaleFactorTestValue();
     });
 
+    final router = GoRouter(
+      initialLocation: '/modifier',
+      routes: [
+        GoRoute(
+          path: '/modifier',
+          builder: (context, state) => const Scaffold(body: ModifierPage()),
+        ),
+        GoRoute(
+          path: '/menu/modifier',
+          builder: (context, state) {
+            final args = state.extra;
+            if (args is! ModifierFormRouteArgs) {
+              return const Scaffold(body: Text('Missing args'));
+            }
+            return Scaffold(
+              body: ModifierFormPage(
+                mode: args.mode,
+                initialGroup: args.initialGroup,
+                onSave: args.onSave,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+
     // 1. Pump ModifierPage
     await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(body: ModifierPage())),
+      MaterialApp.router(routerConfig: router),
     );
     await tester.pumpAndSettle();
 
@@ -40,8 +69,8 @@ void main() {
     await tester.tap(find.text('Add New'));
     await tester.pumpAndSettle();
 
-    // Verify navigation to form
-    expect(find.text('Add Modifier Group'), findsOneWidget);
+    // Verify navigation to form (create mode shows Create button)
+    expect(find.text('Create'), findsOneWidget);
 
     // Enter Group Name (First TextField)
     await tester.enterText(find.byType(TextField).first, 'Extra Toppings');
@@ -79,8 +108,8 @@ void main() {
     await tester.tap(editButton);
     await tester.pumpAndSettle();
 
-    // Verify navigation to edit form
-    expect(find.text('Edit Modifier Group'), findsOneWidget);
+    // Verify navigation to edit form (save button exists)
+    expect(find.text('Save'), findsOneWidget);
     expect(find.text('Extra Toppings'), findsOneWidget);
 
     // Change Group Name

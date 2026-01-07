@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:street_cart_pos/domain/models/category.dart';
 import 'package:street_cart_pos/domain/models/product.dart';
 import 'package:street_cart_pos/ui/core/widgets/forms/add_new_button.dart';
@@ -7,9 +8,9 @@ import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
 import 'package:street_cart_pos/ui/core/widgets/product/product_search_bar.dart';
 import 'package:street_cart_pos/ui/core/widgets/feedback/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/menu/widgets/menu_tab/menu_item_card.dart';
-import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_detail_page.dart';
-import 'package:street_cart_pos/ui/menu/widgets/menu_tab/product_form_page.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/menu_viewmodel.dart';
+import 'package:street_cart_pos/ui/menu/viewmodel/product_form_viewmodel.dart';
+import 'package:street_cart_pos/ui/menu/utils/product_form_route_args.dart';
 
 class MenuPage extends StatefulWidget {
   const MenuPage({super.key, this.initialCategories, this.initialProducts});
@@ -206,16 +207,14 @@ class _MenuPageState extends State<MenuPage> {
                             child: MenuItemCard(
                               product: product,
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProductDetailPage(
-                                      product: product,
-                                      categories: _viewModel.categories,
-                                      availableModifiers:
-                                          _viewModel.modifierGroups,
-                                      onUpdate: _viewModel.updateProduct,
-                                    ),
+                                context.push(
+                                  '/menu/product',
+                                  extra: ProductFormRouteArgs(
+                                    mode: ProductFormMode.view,
+                                    initialProduct: product,
+                                    categories: _viewModel.categories,
+                                    availableModifiers: _viewModel.modifierGroups,
+                                    onSave: _viewModel.updateProduct,
                                   ),
                                 );
                               },
@@ -232,15 +231,13 @@ class _MenuPageState extends State<MenuPage> {
   }
 
   void _openCreateProduct(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProductFormPage(
-          isEditing: false,
-          categories: _viewModel.categories,
-          availableModifiers: _viewModel.modifierGroups,
-          onSave: _viewModel.addProduct,
-        ),
+    context.push(
+      '/menu/product',
+      extra: ProductFormRouteArgs(
+        mode: ProductFormMode.create,
+        categories: _viewModel.categories,
+        availableModifiers: _viewModel.modifierGroups,
+        onSave: _viewModel.addProduct,
       ),
     );
   }

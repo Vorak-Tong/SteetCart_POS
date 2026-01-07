@@ -9,18 +9,23 @@ class AppShell extends StatelessWidget {
     required this.child,
     this.bottomNavigationBar,
     this.currentRouteName,
+    this.showAppBar = true,
+    this.showDrawer = true,
   });
 
   final Widget title;
   final Widget child;
   final Widget? bottomNavigationBar;
   final String? currentRouteName;
+  final bool showAppBar;
+  final bool showDrawer;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: title),
+      appBar: AppBar(title: title) ,
       drawer: AppDrawer(currentRouteName: currentRouteName),
+      drawerEnableOpenDragGesture: showDrawer,
       body: child,
       bottomNavigationBar: bottomNavigationBar,
     );

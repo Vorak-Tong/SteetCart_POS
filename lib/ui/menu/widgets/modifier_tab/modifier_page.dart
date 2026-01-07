@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:street_cart_pos/ui/core/widgets/forms/add_new_button.dart';
 import 'package:street_cart_pos/ui/core/widgets/feedback/inline_hint_card.dart';
 import 'package:street_cart_pos/ui/core/widgets/feedback/swipe_action_background.dart';
 import 'package:street_cart_pos/ui/menu/viewmodel/modifier_viewmodel.dart';
-import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_detail_page.dart';
-import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_form_page.dart';
+import 'package:street_cart_pos/ui/menu/utils/modifier_form_route_args.dart';
 import 'package:street_cart_pos/ui/menu/widgets/modifier_tab/modifier_item_card.dart';
 
 class ModifierPage extends StatefulWidget {
@@ -136,32 +136,22 @@ class _ModifierPageState extends State<ModifierPage> {
                               name: modifier.name,
                               optionCount: modifier.modifierOptions.length,
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ModifierDetailPage(
-                                      group: modifier,
-                                      onUpdate: (updated) async {
-                                        await _viewModel.updateModifierGroup(
-                                          updated,
-                                        );
-                                      },
-                                    ),
+                                context.push(
+                                  '/menu/modifier',
+                                  extra: ModifierFormRouteArgs(
+                                    mode: ModifierFormMode.view,
+                                    initialGroup: modifier,
+                                    onSave: _viewModel.updateModifierGroup,
                                   ),
                                 );
                               },
                               onEdit: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ModifierFormPage(
-                                      initialGroup: modifier,
-                                      onSave: (updated) async {
-                                        await _viewModel.updateModifierGroup(
-                                          updated,
-                                        );
-                                      },
-                                    ),
+                                context.push(
+                                  '/menu/modifier',
+                                  extra: ModifierFormRouteArgs(
+                                    mode: ModifierFormMode.edit,
+                                    initialGroup: modifier,
+                                    onSave: _viewModel.updateModifierGroup,
                                   ),
                                 );
                               },
@@ -178,14 +168,11 @@ class _ModifierPageState extends State<ModifierPage> {
   }
 
   void _openCreateModifier(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ModifierFormPage(
-          onSave: (group) async {
-            await _viewModel.addModifierGroup(group);
-          },
-        ),
+    context.push(
+      '/menu/modifier',
+      extra: ModifierFormRouteArgs(
+        mode: ModifierFormMode.create,
+        onSave: _viewModel.addModifierGroup,
       ),
     );
   }
