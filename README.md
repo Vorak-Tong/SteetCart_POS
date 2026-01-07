@@ -6,7 +6,7 @@ Project: Street Cart POS <br>
 By: Tong Vorak & Lim Ieangzorng
 
 ## About Project
-This project is made as instructed by our lecturer to assess our understanding regarding understanding the use of stateful and stateless widget, layered architecture, good UI/UX design, and some system design thinking. 
+This project is made as instructed by our lecturer to assess our understanding regarding the use of stateful and stateless widget, layered architecture, good UI/UX design, and some system design thinking. 
 
 ### Description
 
